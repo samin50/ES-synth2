@@ -24,12 +24,12 @@ void scanKeysTask(void * pvParameters) {
 
 std::string readKeys() {
     scanKeysTask(NULL);
-    uint16_t res = 0;
-    for (int i = 0; i < 3; i++) {
+    uint32_t res = 0;
+    for (int i = 0; i < 7; i++) {
         res = res | (keyArray[i] << i*4); 
     }
-    char buf[3];
-    sprintf(buf, "%03X", ~res & 0x00000FFF);
+    char buf[7];
+    sprintf(buf, "%07X", ~res & 0x0FFFFFFF);
     std::string result(buf);
     return result;
 }
