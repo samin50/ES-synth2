@@ -2,37 +2,6 @@
 #include <U8g2lib.h>
 #include "Imports/ourLibrary.h"
 
-//Constants
-  const uint32_t interval = 100; //Display update interval
-
-//Pin definitions
-  //Row select and enable
-  const int RA0_PIN = D3;
-  const int RA1_PIN = D6;
-  const int RA2_PIN = D12;
-  const int REN_PIN = A5;
-
-  //Matrix input and output
-  const int C0_PIN = A2;
-  const int C1_PIN = D9;
-  const int C2_PIN = A6;
-  const int C3_PIN = D1;
-  const int OUT_PIN = D11;
-
-  //Audio analogue out
-  const int OUTL_PIN = A4;
-  const int OUTR_PIN = A3;
-
-  //Joystick analogue in
-  const int JOYY_PIN = A0;
-  const int JOYX_PIN = A1;
-
-  //Output multiplexer bits
-  const int DEN_BIT = 3;
-  const int DRST_BIT = 4;
-  const int HKOW_BIT = 5;
-  const int HKOE_BIT = 6;
-
 //Display driver object
 U8G2_SSD1305_128X32_NONAME_F_HW_I2C u8g2(U8G2_R0);
 
@@ -44,7 +13,7 @@ void setOutMuxBit(const uint8_t bitIdx, const bool value) {
       digitalWrite(RA2_PIN, bitIdx & 0x04);
       digitalWrite(OUT_PIN,value);
       digitalWrite(REN_PIN,HIGH);
-      delayMicroseconds(2);
+      delayMicroseconds(3);
       digitalWrite(REN_PIN,LOW);
 }
 
@@ -87,13 +56,13 @@ void loop() {
 
   if (millis() > next) {
     next += interval;
-    testPrint(); //Header file test
+    //testPrint(); //Header file test
     //Update display
     u8g2.clearBuffer();         // clear the internal memory
     u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
     u8g2.drawStr(2,10,"Hello World!");  // write something to the internal memory
     u8g2.setCursor(2,20);
-    u8g2.print(count++);
+    u8g2.print(readKeys().c_str());
     u8g2.sendBuffer();          // transfer internal memory to the display
 
     //Toggle LED
