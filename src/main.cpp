@@ -87,7 +87,7 @@ void loop() {
 
   if (millis() > next) {
     next += interval;
-    //testPrint(); Header file test
+    testPrint(); //Header file test
     //Update display
     u8g2.clearBuffer();         // clear the internal memory
     u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
