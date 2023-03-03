@@ -54,18 +54,18 @@ void loop() {
   static uint32_t next = millis();
   static uint32_t count = 0;
 
-  if (millis() > next) {
-    next += interval;
-    //testPrint(); //Header file test
-    //Update display
-    u8g2.clearBuffer();         // clear the internal memory
-    u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-    u8g2.drawStr(2,10,"Hello World!");  // write something to the internal memory
-    u8g2.setCursor(2,20);
-    u8g2.print(readKeys().c_str());
-    u8g2.sendBuffer();          // transfer internal memory to the display
+  while (millis() < next);  //Wait for next interval
+  next += interval;
 
-    //Toggle LED
-    digitalToggle(LED_BUILTIN);
-  }
+  //Update display
+  u8g2.clearBuffer();         // clear the internal memory
+  u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
+  u8g2.drawStr(2,10,"Hello World!");  // write something to the internal memory
+  u8g2.setCursor(2,20);
+  u8g2.print(readKeys().c_str());
+  u8g2.sendBuffer();          // transfer internal memory to the display
+
+  //Toggle LED
+  digitalToggle(LED_BUILTIN);
+  
 }
