@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
+#include "Imports/ourLibrary.h"
 
 //Constants
   const uint32_t interval = 100; //Display update interval
@@ -86,11 +87,11 @@ void loop() {
 
   if (millis() > next) {
     next += interval;
-
+    //testPrint(); Header file test
     //Update display
     u8g2.clearBuffer();         // clear the internal memory
     u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-    u8g2.drawStr(2,10,"Helllo World!");  // write something to the internal memory
+    u8g2.drawStr(2,10,"Hello World!");  // write something to the internal memory
     u8g2.setCursor(2,20);
     u8g2.print(count++);
     u8g2.sendBuffer();          // transfer internal memory to the display
