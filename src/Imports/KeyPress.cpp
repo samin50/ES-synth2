@@ -36,18 +36,3 @@ void setRow(uint8_t rowIdx) {
     //Enable
     digitalWrite(REN_PIN, HIGH);
 }
-
-// void readKeys() {
-//     u8g2.drawStr(2,10,"Hello World!");  // write something to the internal memory
-//     uint32_t res = 0;
-//     uint8_t tempArray[7];
-//     std::copy(std::begin(keyArray), std::end(keyArray), std::begin(tempArray));
-//     for (int i = 0; i < 7; i++) {
-//         res = res | (tempArray[i] << i*4); 
-//     }
-//     char buf[8];
-//     sprintf(buf, "%07X", ~res & 0x0FFFFFFF);
-//     std::string result(buf);
-//     u8g2.setCursor(2,20);
-//     u8g2.print(result.c_str());
-// }
