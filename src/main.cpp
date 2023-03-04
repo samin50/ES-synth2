@@ -1,10 +1,5 @@
-#include <Arduino.h>
-#include <U8g2lib.h>
 #include "Imports/ourLibrary.h"
 #include <ES_CAN.h>
-
-//Display driver object
-U8G2_SSD1305_128X32_NONAME_F_HW_I2C u8g2(U8G2_R0);
 
 //Function to set outputs using key matrix
 void setOutMuxBit(const uint8_t bitIdx, const bool value) {
@@ -45,7 +40,12 @@ void setup() {
   u8g2.begin();
   setOutMuxBit(DEN_BIT, HIGH);  //Enable display power supply
 
+  //Keyscanner
+  setupKeyScan();
   //Initialise UART
+
+  //Start tasks
+  vTaskStartScheduler();
   Serial.begin(9600);
   Serial.println("Hello World");
 }
@@ -57,14 +57,6 @@ void loop() {
 
   while (millis() < next);  //Wait for next interval
   next += interval;
-
-  //Update display
-  u8g2.clearBuffer();         // clear the internal memory
-  u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-  u8g2.drawStr(2,10,"Hello World!");  // write something to the internal memory
-  u8g2.setCursor(2,20);
-  u8g2.print(readKeys().c_str());
-  u8g2.sendBuffer();          // transfer internal memory to the display
 
   //Toggle LED
   digitalToggle(LED_BUILTIN);
