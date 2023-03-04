@@ -41,12 +41,18 @@ void setup() {
 
   //Keyscanner
   setupKeyScan();
+  //Hardware Timer for sound
+  TIM_TypeDef *Instance = TIM1;
+  HardwareTimer *sampleTimer = new HardwareTimer(Instance);
+  sampleTimer->setOverflow(22000, HERTZ_FORMAT);
+  sampleTimer->attachInterrupt(sampleISR);
+  sampleTimer->resume();
   //Initialise UART
-
-  //Start tasks
-  vTaskStartScheduler();
   Serial.begin(9600);
   Serial.println("Hello World");
+  //Start tasks
+  vTaskStartScheduler();
+
 }
 
 void loop() {

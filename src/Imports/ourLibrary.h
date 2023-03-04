@@ -5,14 +5,18 @@
 #include <Arduino.h>
 #include <STM32FreeRTOS.h>
 #include <U8g2lib.h>
+#include <map>
 
 //Constants and Global variables
+inline volatile uint8_t waveType = 0; //0 is sawtooth
+inline const uint8_t polyphony = 4; //How many simulataneous keys allowed
 inline const uint32_t interval = 100; //Display update interval
 inline uint8_t keyArray[7];
 inline const uint32_t stepSizes [] = {85899345, 90975216, 96246312, 102103086, 108155085, 114597536, 121430439, 128653793, 136267598, 144271855, 152861790, 162037402};
 inline std::string keyInfo;
 inline U8G2_SSD1305_128X32_NONAME_F_HW_I2C u8g2(U8G2_R0);
 inline SemaphoreHandle_t keyArrayMutex;
+inline volatile uint32_t currentStepSize[polyphony];
 
 //Functions/Tasks
 void testPrint();
@@ -23,8 +27,8 @@ void displayUpdateTask(void * pvParameters);
 
 uint8_t readCols();
 void setRow(uint8_t rowIdx);
-void readKeys();
 void setupKeyScan();
+void sampleISR();
 
 //Shaanuka
 
