@@ -7,7 +7,7 @@ void setupKeyScan() {
   xTaskCreate(
   scanKeysTask,		/* Function that implements the task */
   "scanKeys",		/* Text name for the task */
-  128,      		/* Stack size in words, not bytes */
+  256,      		/* Stack size in words, not bytes */
   NULL,			/* Parameter passed into the task */
   2,			/* Task priority */
   &scanKeysHandle);	/* Pointer to store the task handle */
@@ -37,17 +37,17 @@ void setRow(uint8_t rowIdx) {
     digitalWrite(REN_PIN, HIGH);
 }
 
-void readKeys() {
-    u8g2.drawStr(2,10,"Hello World!");  // write something to the internal memory
-    uint32_t res = 0;
-    uint8_t tempArray[7];
-    std::copy(std::begin(keyArray), std::end(keyArray), std::begin(tempArray));
-    for (int i = 0; i < 7; i++) {
-        res = res | (tempArray[i] << i*4); 
-    }
-    char buf[8];
-    sprintf(buf, "%07X", ~res & 0x0FFFFFFF);
-    std::string result(buf);
-    u8g2.setCursor(2,20);
-    u8g2.print(result.c_str());
-}
+// void readKeys() {
+//     u8g2.drawStr(2,10,"Hello World!");  // write something to the internal memory
+//     uint32_t res = 0;
+//     uint8_t tempArray[7];
+//     std::copy(std::begin(keyArray), std::end(keyArray), std::begin(tempArray));
+//     for (int i = 0; i < 7; i++) {
+//         res = res | (tempArray[i] << i*4); 
+//     }
+//     char buf[8];
+//     sprintf(buf, "%07X", ~res & 0x0FFFFFFF);
+//     std::string result(buf);
+//     u8g2.setCursor(2,20);
+//     u8g2.print(result.c_str());
+// }
