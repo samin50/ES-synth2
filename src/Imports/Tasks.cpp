@@ -65,7 +65,7 @@ void scanKeysTask(void * pvParameters) {
             //Free up accumulators if key no longer pressed
             if (pianoKeyMap[accumulatorMap[i]] == 0) {
                 accumulatorMap[i] = NULL;
-                currentStepSize[i] = 0;
+                __atomic_store_n(&currentStepSize[i], 0, __ATOMIC_RELAXED);
             }
         }
         //Allocate freed accumulators to pressed keys
@@ -80,7 +80,7 @@ void scanKeysTask(void * pvParameters) {
                         //Write which key the previously free one is allocated to
                         accumulatorMap[i] = j;
                         //Set the step size for the accumulator according to the key pitch/
-                        currentStepSize[i] = stepSizes[j];
+                        __atomic_store_n(&currentStepSize[i], stepSizes[j], __ATOMIC_RELAXED);
                         break;
                     }
                 }
