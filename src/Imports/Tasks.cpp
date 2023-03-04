@@ -114,8 +114,10 @@ void displayUpdateTask(void * pvParameters) {
         xSemaphoreGive(keyArrayMutex);
         //Obtain hex code for keypresses
         for (int i = 0; i < 7; i++) {
-            res = res | (tempArray[i] << i*4); 
+            res = res | (tempArray[i] << i*4);
+            //Serial.println(tempArray[i]);
         }
+        
         char buf[8];
         sprintf(buf, "%07X", ~res & 0x0FFFFFFF);
         std::string result(buf);

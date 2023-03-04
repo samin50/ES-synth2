@@ -1,6 +1,8 @@
 #include "Imports/ourLibrary.h"
 #include <ES_CAN.h>
 
+volatile uint8_t TX_Message[8] = {0};
+
 //Function to set outputs using key matrix
 void setOutMuxBit(const uint8_t bitIdx, const bool value) {
       digitalWrite(REN_PIN,LOW);
@@ -31,7 +33,6 @@ void displayKey(uint32_t value){
 
 void setup() {
   // put your setup code here, to run once:
-
   //Set pin directions
   pinMode(RA0_PIN, OUTPUT);
   pinMode(RA1_PIN, OUTPUT);
