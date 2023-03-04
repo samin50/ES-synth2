@@ -7,7 +7,7 @@ void setupKeyScan() {
   xTaskCreate(
   scanKeysTask,		/* Function that implements the task */
   "scanKeys",		/* Text name for the task */
-  128,      		/* Stack size in words, not bytes */
+  256,      		/* Stack size in words, not bytes */
   NULL,			/* Parameter passed into the task */
   2,			/* Task priority */
   &scanKeysHandle);	/* Pointer to store the task handle */

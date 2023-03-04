@@ -13,7 +13,7 @@ void scanKeysTask(void * pvParameters) {
     uint8_t keyNum = 0;
     uint8_t polyCounter = 0;
     //Determine which keys were changed
-    uint8_t pianoKeyMap[12];
+    uint8_t pianoKeyMap[12] = {0};
     //Accumulator for polyphony
     uint8_t accumulatorMap[polyphony];
     uint8_t freeAccumulator = -1;
@@ -31,14 +31,15 @@ void scanKeysTask(void * pvParameters) {
             setRow(i);
             delayMicroseconds(3);
             //Read columns
-            colsResult = readCols();
-            currArray[i] = colsResult;
+            colsResult = ~readCols();
+            currArray[i] = ~colsResult;
             //For the piano keys (i < 3)
             if (i < 3) {
                 columnIndex = 0;
                 //Count the number of keys pressed in the current row
                 while(colsResult) {
                     keyNum = (i*4)+columnIndex;
+                    //Active low
                     if (colsResult & 1) {
                         polyCounter++; //Total piano key presses
                         //Set the key to being pressed
@@ -64,6 +65,7 @@ void scanKeysTask(void * pvParameters) {
             //Free up accumulators if key no longer pressed
             if (pianoKeyMap[accumulatorMap[i]] == 0) {
                 accumulatorMap[i] = NULL;
+                currentStepSize[i] = 0;
             }
         }
         //Allocate freed accumulators to pressed keys

@@ -9,7 +9,7 @@
 
 //Constants and Global variables
 inline volatile uint8_t waveType = 0; //0 is sawtooth
-inline const uint8_t polyphony = 4; //How many simulataneous keys allowed
+inline const uint8_t polyphony = 8; //How many simulataneous keys allowed
 inline const uint32_t interval = 100; //Display update interval
 inline uint8_t keyArray[7];
 inline const uint32_t stepSizes [] = {85899345, 90975216, 96246312, 102103086, 108155085, 114597536, 121430439, 128653793, 136267598, 144271855, 152861790, 162037402};
