@@ -4,19 +4,19 @@
 void scanKeysTask(void * pvParameters) {
     const TickType_t xFrequency = 50/portTICK_PERIOD_MS;
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    //uint8_t tempArray[7];
+    uint8_t tempArray[7];
     while(1) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         for(int i = 0; i < 7; i++) {
             setRow(i);
             delayMicroseconds(3);
-            xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
-            keyArray[i] = readCols();
-            xSemaphoreGive(keyArrayMutex);
+            tempArray[i] = readCols();
         }
+        //Copy into keyArray
+        xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
+        std::copy(std::begin(tempArray), std::end(tempArray), std::begin(keyArray));
+        xSemaphoreGive(keyArrayMutex);
     }
-    //Copy into keyArray
-    //std::copy(std::begin(tempArray), std::end(tempArray), std::begin(keyArray));
 }
 
 //Task for display updating - period 100ms
