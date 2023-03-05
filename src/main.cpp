@@ -1,7 +1,4 @@
 #include "Imports/ourLibrary.h"
-#include <ES_CAN.h>
-
-volatile uint8_t TX_Message[8] = {0};
 
 //Function to set outputs using key matrix
 void setOutMuxBit(const uint8_t bitIdx, const bool value) {
@@ -16,6 +13,13 @@ void setOutMuxBit(const uint8_t bitIdx, const bool value) {
 }
 
 void setup() {
+  //Initialise CAN
+  CAN_Init(false);
+  setCANFilter(0x123,0x7ff);
+  CAN_RegisterRX_ISR(CAN_RX_ISR);
+  CAN_Start();
+  msgInQ = xQueueCreate(36,8);
+  xTaskCreate(decodeTask, "Decode", 200, NULL, 2, NULL);
   // put your setup code here, to run once:
   //Set pin directions
   pinMode(RA0_PIN, OUTPUT);
@@ -52,6 +56,7 @@ void setup() {
   //Initialise UART
   Serial.begin(9600);
   Serial.println("Hello World");
+
   //Start tasks
   vTaskStartScheduler();
 

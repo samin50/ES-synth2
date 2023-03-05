@@ -6,6 +6,7 @@
 #include <STM32FreeRTOS.h>
 #include <U8g2lib.h>
 #include <map>
+#include <ES_CAN.h>
 
 //Constants and Global variables
 inline volatile uint8_t waveType = 0; //0 is sawtooth
@@ -17,7 +18,9 @@ inline std::string keyInfo;
 inline U8G2_SSD1305_128X32_NONAME_F_HW_I2C u8g2(U8G2_R0);
 inline SemaphoreHandle_t keyArrayMutex;
 inline volatile uint32_t currentStepSize[polyphony];
-
+inline volatile uint8_t TX_Message[8] = {0};
+inline uint8_t RX_Message[8] = {0};
+inline QueueHandle_t msgInQ;
 //Functions/Tasks
 void testPrint();
 void scanKeysTask(void * pvParameters);
@@ -31,7 +34,9 @@ void setupKeyScan();
 void sampleISR();
 
 //Shaanuka
-
+void CAN_RX_ISR();
+void decodeTask(void *pvParamters);
+void sendMessage(uint32_t id, uint8_t* data, uint8_t length);
 //Valia
 
 //Andreas

@@ -103,6 +103,9 @@ void scanKeysTask(void * pvParameters) {
 void displayUpdateTask(void * pvParameters) {
     const TickType_t xFrequency = 100/portTICK_PERIOD_MS;
     TickType_t xLastWakeTime = xTaskGetTickCount();
+    //uint8_t RX_Message[8];
+    //std::copy(std::begin(TX_Message), std::end(TX_Message), std::begin(RX_Message));
+    ; //received msg
     while(1) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         //Display button press
@@ -117,6 +120,20 @@ void displayUpdateTask(void * pvParameters) {
             res = res | (tempArray[i] << i*4);
             //Serial.println(tempArray[i]);
         }
+
+        RX_Message[0] = tempArray[0];
+        //TX_Message[1] = tempArray[0];
+        // TX_Message[2] = 9;
+        sendMessage(0x456,RX_Message,8);
+
+        // uint8_t tempMsg[8]; //copy of msg to be transmitted
+
+        // uint32_t ID = 0x123;
+        // std::copy(std::begin(TX_Message), std::end(TX_Message), std::begin(tempMsg));
+        // CAN_TX(0x456,tempMsg);//tempMsg);
+        // while (CAN_CheckRXLevel())
+	    //     CAN_RX(ID, RX_Message);
+        // Serial.println(RX_Message[0]);
         
         char buf[8];
         sprintf(buf, "%07X", ~res & 0x0FFFFFFF);
