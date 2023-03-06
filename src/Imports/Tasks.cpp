@@ -33,6 +33,7 @@ void scanKeysTask(void * pvParameters) {
             //Read columns
             colsResult = ~readCols();
             currArray[i] = ~colsResult;
+            
             //For the piano keys (i < 3)
             if (i < 3) {
                 columnIndex = 0;
@@ -89,8 +90,9 @@ void scanKeysTask(void * pvParameters) {
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(keyArray), std::end(keyArray), std::begin(prevArray));
         xSemaphoreGive(keyArrayMutex);
-
-        sendCurrKeys(currArray);
+        
+        stateChange(prevArray,currArray,State);
+        sendCurrKeys(State);
         //FOR VALIA/ANDREAS: prevArray IS THE PREVIOUS STATE. currArray IS THE NEW STATE.
         //prevArray = previous state
         //currArray = current state
@@ -120,17 +122,7 @@ void displayUpdateTask(void * pvParameters) {
         //Obtain hex code for keypresses
         for (int i = 0; i < 7; i++) {
             res = res | (tempArray[i] << i*4);
-            //Serial.println(tempArray[i]);
         }
-
-        // uint8_t tempMsg[8]; //copy of msg to be transmitted
-
-        // uint32_t ID = 0x123;
-        // std::copy(std::begin(TX_Message), std::end(TX_Message), std::begin(tempMsg));
-        // CAN_TX(0x456,tempMsg);//tempMsg);
-        // while (CAN_CheckRXLevel())
-	    //     CAN_RX(ID, RX_Message);
-        // Serial.println(RX_Message[0]);
         
         char buf[8];
         sprintf(buf, "%07X", ~res & 0x0FFFFFFF);

@@ -19,6 +19,7 @@ inline U8G2_SSD1305_128X32_NONAME_F_HW_I2C u8g2(U8G2_R0);
 inline SemaphoreHandle_t keyArrayMutex;
 inline volatile uint32_t currentStepSize[polyphony];
 inline uint8_t RX_Message[8] = {0};
+inline uint8_t State[8] = {0};
 inline QueueHandle_t msgInQ;
 inline QueueHandle_t msgOutQ;
 inline SemaphoreHandle_t CAN_TX_Semaphore;
@@ -41,6 +42,7 @@ void sendMessage(uint32_t id, uint8_t* data, uint8_t length);
 void sendCurrKeys(uint8_t* keys);
 void CANSend(void * pvParameters);
 void CAN_TX_ISR();
+void stateChange(uint8_t *prevKeys, uint8_t *currKeys, uint8_t (&state)[8]);
 //Valia
 
 //Andreas
