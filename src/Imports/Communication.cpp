@@ -35,3 +35,10 @@ void sendMessage(uint32_t id, uint8_t* data, uint8_t length) {
   //CAN_TX(id, data); // Send the message to the specified ID
   xQueueSend(msgOutQ, TX_Message, portMAX_DELAY);
 }
+
+void sendCurrKeys(uint8_t* keys){
+	RX_Message[0] = keys[0];
+	//TX_Message[1] = tempArray[0];
+	// TX_Message[2] = 9;
+	sendMessage(0x456,RX_Message,8);
+}

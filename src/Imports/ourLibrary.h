@@ -36,10 +36,10 @@ void sampleISR();
 
 //Shaanuka
 void CAN_RX_ISR();
-void CANSend(void * pvParameters);
 void decodeTask(void *pvParamters);
 void sendMessage(uint32_t id, uint8_t* data, uint8_t length);
-
+void sendCurrKeys(uint8_t* keys);
+void CANSend(void * pvParameters);
 void CAN_TX_ISR();
 //Valia
 

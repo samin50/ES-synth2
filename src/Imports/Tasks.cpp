@@ -89,6 +89,8 @@ void scanKeysTask(void * pvParameters) {
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(keyArray), std::end(keyArray), std::begin(prevArray));
         xSemaphoreGive(keyArrayMutex);
+
+        sendCurrKeys(currArray);
         //FOR VALIA/ANDREAS: prevArray IS THE PREVIOUS STATE. currArray IS THE NEW STATE.
         //prevArray = previous state
         //currArray = current state
@@ -120,11 +122,6 @@ void displayUpdateTask(void * pvParameters) {
             res = res | (tempArray[i] << i*4);
             //Serial.println(tempArray[i]);
         }
-
-        RX_Message[0] = tempArray[0];
-        //TX_Message[1] = tempArray[0];
-        // TX_Message[2] = 9;
-        sendMessage(0x456,RX_Message,8);
 
         // uint8_t tempMsg[8]; //copy of msg to be transmitted
 
