@@ -13,18 +13,6 @@ void setOutMuxBit(const uint8_t bitIdx, const bool value) {
 }
 
 void setup() {
-  //Initialise CAN
-  CAN_Init(false);
-  setCANFilter(0x456,0x7ff);
-  CAN_RegisterRX_ISR(CAN_RX_ISR);
-  CAN_RegisterTX_ISR(CAN_TX_ISR);
-  CAN_Start();
-  CAN_TX_Semaphore = xSemaphoreCreateCounting(3,3);
-  msgInQ = xQueueCreate(36,8);
-  msgOutQ = xQueueCreate(36,8);
-  xTaskCreate(decodeTask, "Decode", 200, NULL, 3, NULL);
-  xTaskCreate(CANSend, "CANSend", 200, NULL, 4, NULL);
-  // put your setup code here, to run once:
   //Set pin directions
   pinMode(RA0_PIN, OUTPUT);
   pinMode(RA1_PIN, OUTPUT);
@@ -41,8 +29,20 @@ void setup() {
   pinMode(C3_PIN, INPUT);
   pinMode(JOYX_PIN, INPUT);
   pinMode(JOYY_PIN, INPUT);
-
+  //Initialise CAN
+  CAN_Init(false);
+  setCANFilter(MASTER_ID,0x7ff);
+  CAN_RegisterRX_ISR(CAN_RX_ISR);
+  CAN_RegisterTX_ISR(CAN_TX_ISR);
+  CAN_Start();
+  CAN_TX_Semaphore = xSemaphoreCreateCounting(3,3);
+  msgInQ = xQueueCreate(36,8);
+  msgOutQ = xQueueCreate(36,8);
+  //xTaskCreate(decodeTask, "Decode", 256, NULL, 3, NULL);
+  //xTaskCreate(CANSend, "CANSend", 256, NULL, 4, NULL);
   //Initialise display
+  TaskHandle_t displayUpdateTaskHandle = NULL;
+  //xTaskCreate(displayUpdateTask, "displayUpdate", 128, NULL, 1,	&displayUpdateTaskHandle);
   setOutMuxBit(DRST_BIT, LOW);  //Assert display logic reset
   delayMicroseconds(2);
   setOutMuxBit(DRST_BIT, HIGH);  //Release display logic reset
@@ -50,7 +50,9 @@ void setup() {
   setOutMuxBit(DEN_BIT, HIGH);  //Enable display power supply
 
   //Keyscanner
-  setupKeyScan();
+  TaskHandle_t scanKeysHandle = NULL;
+  //xTaskCreate(scanKeysTask, "scanKeys", 512, NULL, 2,	&scanKeysHandle);
+  keyArrayMutex = xSemaphoreCreateMutex();
   //Hardware Timer for sound
   TIM_TypeDef *Instance = TIM1;
   HardwareTimer *sampleTimer = new HardwareTimer(Instance);
@@ -60,10 +62,13 @@ void setup() {
   //Initialise UART
   Serial.begin(9600);
   Serial.println("Hello World");
-
+  //Initialise accumulator map
+  //Initialise map
+  for(int i = 0; i < POLYPHONY; i++) {
+      accumulatorMap[i] = NULL;
+  }
   //Start tasks
   vTaskStartScheduler();
-
 }
 
 void loop() {
@@ -72,7 +77,7 @@ void loop() {
   static uint32_t count = 0;
 
   while (millis() < next);  //Wait for next interval
-  next += interval;
+  next += INTERVAL;
 
   //Toggle LED
   digitalToggle(LED_BUILTIN);

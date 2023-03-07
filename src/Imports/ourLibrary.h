@@ -5,36 +5,42 @@
 #include <Arduino.h>
 #include <STM32FreeRTOS.h>
 #include <U8g2lib.h>
-#include <map>
 #include <ES_CAN.h>
 
 //Constants and Global variables
-inline volatile uint8_t waveType = 0; //0 is sawtooth
-inline const uint8_t polyphony = 8; //How many simulataneous keys allowed
-inline const uint32_t interval = 100; //Display update interval
-inline uint8_t keyArray[7];
-inline const uint32_t stepSizes [] = {85899345, 90975216, 96246312, 102103086, 108155085, 114597536, 121430439, 128653793, 136267598, 144271855, 152861790, 162037402};
-inline std::string keyInfo;
+//Settings
+inline uint8_t OCTAVE = 4; //Octave number
+inline uint8_t MASTER_ID = 100;
+inline uint8_t ISMASTER = true; //Is the master (is responsible for playing keys?)
+inline volatile uint8_t WAVETYPE = 0; //0 is sawtooth
+inline const uint8_t POLYPHONY = 8; //How many simulataneous keys allowed
+inline const uint32_t INTERVAL = 100; //Display update interval
+//Display
 inline U8G2_SSD1305_128X32_NONAME_F_HW_I2C u8g2(U8G2_R0);
+inline std::string keyInfo;
+//Key scan variables
+inline uint8_t keyArray[7];
 inline SemaphoreHandle_t keyArrayMutex;
-inline volatile uint32_t currentStepSize[polyphony];
-inline uint8_t TX_Message[8] = {0};
-inline volatile uint8_t State[8] = {'R',0,0,0,0,0,0,0};
+//CAN variables
 inline QueueHandle_t msgInQ;
 inline QueueHandle_t msgOutQ;
 inline SemaphoreHandle_t CAN_TX_Semaphore;
-inline uint8_t octave = 4;
-//Functions/Tasks
-void testPrint();
-void scanKeysTask(void * pvParameters);
-void displayUpdateTask(void * pvParameters);
+//Polyphony and audio settings
+inline const uint32_t stepSizes [] = {85899345, 90975216, 96246312, 102103086, 108155085, 114597536, 121430439, 128653793, 136267598, 144271855, 152861790, 162037402};
+inline volatile uint32_t currentStepSize[POLYPHONY];
+inline volatile uint8_t accumulatorMap[POLYPHONY]; //Accumulator map - contains information mapping accumulators and key presses to allow polyphony
+inline volatile uint8_t pianoKeyMap[84]; //Keeps track of which key is allocated to what accumulator - 7 octaves support so 84 keys total
+
 
 //Shaheen
 
 uint8_t readCols();
 void setRow(uint8_t rowIdx);
-void setupKeyScan();
 void sampleISR();
+void allocAccumulator(uint8_t key, uint8_t octaveNum);
+void deallocAccumulator(uint8_t key, uint8_t octaveNum);
+void scanKeysTask(void * pvParameters);
+void displayUpdateTask(void * pvParameters);
 
 //Shaanuka
 void CAN_RX_ISR();
