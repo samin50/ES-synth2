@@ -37,25 +37,6 @@ void sendMessage(uint32_t id, uint8_t* data, uint8_t length) {
   xQueueSend(msgOutQ, TX_Message, portMAX_DELAY);
 }
 
-// void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
-// 	int index = 0;
-// 	if (prevKeys != currKeys){
-// 		bool keyFound = false;
-// 		int key;
-// 		for (int i=0;i<3;i++){
-// 			if (prevKeys[i]^currKeys[i]!=0){
-// 				for (int b = 0; b < 8; b++) {
-// 					uint8_t result =  prevKeys[b]^currKeys[b];
-// 					if ((result & (8 >> b)) != 0) {
-// 						Serial.println(result);
-// 						index = b;
-// 					}
-// 				State[2] = index;
-// 			}
-// 		}
-// 	}}
-// }
-
 void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
 	uint8_t prevKeyRow;
 	uint8_t currKeyRow;
