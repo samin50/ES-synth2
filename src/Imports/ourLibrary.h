@@ -9,9 +9,6 @@
 
 //Constants and Global variables
 //Settings
-inline uint8_t OCTAVE = 4; //Octave number
-inline uint8_t MASTER_ID = 100;
-inline uint8_t ISMASTER = true; //Is the master (is responsible for playing keys?)
 inline volatile uint8_t WAVETYPE = 0; //0 is sawtooth
 inline const uint8_t POLYPHONY = 8; //How many simulataneous keys allowed
 inline const uint32_t INTERVAL = 100; //Display update interval
@@ -30,6 +27,11 @@ inline const uint32_t stepSizes [] = {85899345, 90975216, 96246312, 102103086, 1
 inline volatile uint32_t currentStepSize[POLYPHONY];
 inline volatile uint8_t accumulatorMap[POLYPHONY]; //Accumulator map - contains information mapping accumulators and key presses to allow polyphony
 inline volatile uint8_t pianoKeyMap[84]; //Keeps track of which key is allocated to what accumulator - 7 octaves support so 84 keys total
+//Buttons
+inline volatile uint8_t VOLUMEMOD = 5;
+inline volatile uint8_t OCTAVE = 4; //Octave number
+inline volatile uint8_t MASTER_ID = 100;
+inline volatile uint8_t ISMASTER = true; //Is the master (is responsible for playing keys?)
 
 
 //Shaheen
@@ -41,6 +43,8 @@ void allocAccumulator(uint8_t key, uint8_t octaveNum);
 void deallocAccumulator(uint8_t key, uint8_t octaveNum);
 void scanKeysTask(void * pvParameters);
 void displayUpdateTask(void * pvParameters);
+void updateButtons(uint8_t prevKeys[], uint8_t currKeys[]);
+int8_t rotationDirection(uint8_t prevState, uint8_t currState);
 
 //Shaanuka
 void CAN_RX_ISR();

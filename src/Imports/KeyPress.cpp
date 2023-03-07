@@ -41,7 +41,8 @@ void scanKeysTask(void * pvParameters) {
         std::copy(std::begin(keyArray), std::end(keyArray), std::begin(prevArray));
         xSemaphoreGive(keyArrayMutex);
         
-        //stateChange(prevArray,currArray);
+        stateChange(prevArray,currArray);
+        updateButtons(prevArray, currArray);
         //FOR VALIA/ANDREAS: prevArray IS THE PREVIOUS STATE. currArray IS THE NEW STATE.
         //prevArray = previous state
         //currArray = current state

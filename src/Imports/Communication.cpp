@@ -10,7 +10,7 @@ void CAN_RX_ISR (void) {
 void CANSend(void * pvParameters) {
 	uint8_t msgOut[8];
 	while (1) {
-	xQueueReceive(msgOutQ, msgOut, portMAX_DELAY);
+		xQueueReceive(msgOutQ, msgOut, portMAX_DELAY);
 		xSemaphoreTake(CAN_TX_Semaphore, portMAX_DELAY);
 		CAN_TX(MASTER_ID, msgOut);
 	}
@@ -26,9 +26,19 @@ void decodeTask(void *pvParamters) {
 	uint8_t RX_Message[8];
 	while (1) {
 		xQueueReceive(msgInQ, RX_Message, portMAX_DELAY);
+		if (!ISMASTER) {
+			continue;
+		}
+		//If the same octave, reject packet to prevent freezing
+		if (RX_Message[1] == OCTAVE) {
+			continue;
+		}
 		// Process the received message
-		Serial.println(RX_Message[0]);
-		Serial.println(RX_Message[2]);
+		if (RX_Message[0] == 'P') {
+			allocAccumulator(RX_Message[2], RX_Message[1]);
+		} else {
+			deallocAccumulator(RX_Message[2], RX_Message[1]);
+		}
   	}
 }
 
