@@ -5,8 +5,8 @@
 void scanKeysTask(void * pvParameters) {
     const TickType_t xFrequency = 50/portTICK_PERIOD_MS;
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    uint8_t currArray[7];
-    uint8_t prevArray[7];
+    uint8_t currArray[8];
+    uint8_t prevArray[8];
     //Determine what key was pressed
     uint8_t colsResult;
     uint8_t columnIndex;
@@ -26,7 +26,7 @@ void scanKeysTask(void * pvParameters) {
         polyCounter = 0;
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         //Key scanning
-        for(int i = 0; i < 7; i++) {
+        for(int i = 0; i < 8; i++) {
             //Activate row to read
             setRow(i);
             delayMicroseconds(3);
@@ -91,8 +91,7 @@ void scanKeysTask(void * pvParameters) {
         std::copy(std::begin(keyArray), std::end(keyArray), std::begin(prevArray));
         xSemaphoreGive(keyArrayMutex);
         
-        stateChange(prevArray,currArray,State);
-        sendCurrKeys(State);
+        stateChange(prevArray,currArray);
         //FOR VALIA/ANDREAS: prevArray IS THE PREVIOUS STATE. currArray IS THE NEW STATE.
         //prevArray = previous state
         //currArray = current state
@@ -114,18 +113,18 @@ void displayUpdateTask(void * pvParameters) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         //Display button press
         uint32_t res = 0;
-        uint8_t tempArray[7];
+        uint8_t tempArray[8];
         //Copy from keyArray
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(keyArray), std::end(keyArray), std::begin(tempArray));
         xSemaphoreGive(keyArrayMutex);
         //Obtain hex code for keypresses
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 8; i++) {
             res = res | (tempArray[i] << i*4);
         }
         
-        char buf[8];
-        sprintf(buf, "%07X", ~res & 0x0FFFFFFF);
+        char buf[9];
+        sprintf(buf, "%08X", ~res & 0xFFFFFFFF);
         std::string result(buf);
         //Update display
         u8g2.clearBuffer();         // clear the internal memory

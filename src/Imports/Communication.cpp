@@ -25,7 +25,8 @@ void decodeTask(void *pvParamters) {
   while (1) {
     xQueueReceive(msgInQ, RX_Message, portMAX_DELAY);
     // Process the received message
-    Serial.println(RX_Message[0]);
+	Serial.println(RX_Message[0]);
+    Serial.println(RX_Message[2]);
   }
 }
 
@@ -36,27 +37,58 @@ void sendMessage(uint32_t id, uint8_t* data, uint8_t length) {
   xQueueSend(msgOutQ, TX_Message, portMAX_DELAY);
 }
 
-void stateChange(uint8_t *prevKeys, uint8_t *currKeys, uint8_t (&currentState)[8]){
-	int index = -1;
-	if (prevKeys != currKeys){
-		bool keyFound = false;
-		int key;
-		for (int i=0;i<2;i++){
-			if (prevKeys[i]^currKeys[i]!=0){
-				uint8_t result =  prevKeys[i]^currKeys[i];
-				for (int bit = 0; bit < 8; bit++) {
-					if ((result & (1 << bit)) != 0) {
-						index = bit;
-					}
-				currentState[2] = index;
+// void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
+// 	int index = 0;
+// 	if (prevKeys != currKeys){
+// 		bool keyFound = false;
+// 		int key;
+// 		for (int i=0;i<3;i++){
+// 			if (prevKeys[i]^currKeys[i]!=0){
+// 				for (int b = 0; b < 8; b++) {
+// 					uint8_t result =  prevKeys[b]^currKeys[b];
+// 					if ((result & (8 >> b)) != 0) {
+// 						Serial.println(result);
+// 						index = b;
+// 					}
+// 				State[2] = index;
+// 			}
+// 		}
+// 	}}
+// }
+
+void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
+	uint8_t prevKeyRow;
+	uint8_t currKeyRow;
+	uint8_t columnIndex = 0;
+	uint8_t keyNum = 0;
+
+	for (int i=0; i<3;i++){
+		prevKeyRow = prevKeys[i];
+		currKeyRow = currKeys[i];
+		columnIndex = 0;
+		keyNum = 0;
+		for (int columnIndex = 0; columnIndex < 4; columnIndex++) {
+			keyNum = (i*4)+columnIndex;
+			if (((prevKeyRow&1)^(currKeyRow&1))==1) {
+
+				if ((prevKeyRow&1) == 0){ 	//key Pressed
+					RX_Message[0] = 'R';
+					RX_Message[2] = keyNum;
+				}
+				else{ 						//Key released
+					RX_Message[0] = 'P';
+					RX_Message[2] = keyNum;
+				}
+				sendCurrKeys();	
 			}
+			currKeyRow = currKeyRow >> 1;
+			prevKeyRow = prevKeyRow >> 1;
 		}
-	}}
+	}
 }
 
-void sendCurrKeys(uint8_t* keys){
-	RX_Message[0] = keys[0];
+void sendCurrKeys(){
 	//TX_Message[1] = tempArray[0];
-	// TX_Message[2] = 9;
+	//TX_Message[2] = 9;
 	sendMessage(0x456,RX_Message,8);
 }

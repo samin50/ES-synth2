@@ -14,16 +14,16 @@ void setOutMuxBit(const uint8_t bitIdx, const bool value) {
 
 void setup() {
   //Initialise CAN
-  CAN_Init(false);
-  setCANFilter(0x123,0x7ff);
+  CAN_Init(true);
+  setCANFilter(0x456,0x7ff);
   CAN_RegisterRX_ISR(CAN_RX_ISR);
   CAN_RegisterTX_ISR(CAN_TX_ISR);
   CAN_Start();
   CAN_TX_Semaphore = xSemaphoreCreateCounting(3,3);
   msgInQ = xQueueCreate(36,8);
   msgOutQ = xQueueCreate(36,8);
-  xTaskCreate(decodeTask, "Decode", 200, NULL, 2, NULL);
-  xTaskCreate(CANSend, "CANSend", 200, NULL, 2, NULL);
+  xTaskCreate(decodeTask, "Decode", 200, NULL, 3, NULL);
+  xTaskCreate(CANSend, "CANSend", 200, NULL, 4, NULL);
   // put your setup code here, to run once:
   //Set pin directions
   pinMode(RA0_PIN, OUTPUT);
