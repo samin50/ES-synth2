@@ -18,11 +18,12 @@ inline std::string keyInfo;
 inline U8G2_SSD1305_128X32_NONAME_F_HW_I2C u8g2(U8G2_R0);
 inline SemaphoreHandle_t keyArrayMutex;
 inline volatile uint32_t currentStepSize[polyphony];
-inline uint8_t RX_Message[8] = {0};
+inline uint8_t TX_Message[8] = {0};
 inline volatile uint8_t State[8] = {'R',0,0,0,0,0,0,0};
 inline QueueHandle_t msgInQ;
 inline QueueHandle_t msgOutQ;
 inline SemaphoreHandle_t CAN_TX_Semaphore;
+inline uint8_t octave = 4;
 //Functions/Tasks
 void testPrint();
 void scanKeysTask(void * pvParameters);

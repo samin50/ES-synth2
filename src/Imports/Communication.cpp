@@ -21,20 +21,25 @@ void CAN_TX_ISR(void) {
 }
 
 void decodeTask(void *pvParamters) {
-  uint8_t RX_Message[8];
-  while (1) {
-    xQueueReceive(msgInQ, RX_Message, portMAX_DELAY);
-    // Process the received message
-	Serial.println(RX_Message[0]);
-    Serial.println(RX_Message[2]);
-  }
+	const TickType_t xFrequency = 50/portTICK_PERIOD_MS;
+	TickType_t xLastWakeTime = xTaskGetTickCount();
+	uint8_t RX_Message[8];
+
+	while (1) {
+		xQueueReceive(msgInQ, RX_Message, portMAX_DELAY);
+		// Process the received message
+		Serial.println(RX_Message[0]);
+		Serial.println(RX_Message[2]);
+  	}
 }
 
 void sendMessage(uint32_t id, uint8_t* data, uint8_t length) {
-  uint8_t TX_Message[8];
-  memcpy(TX_Message, data, length); // Copy data into txMessage array
-  //CAN_TX(id, data); // Send the message to the specified ID
-  xQueueSend(msgOutQ, TX_Message, portMAX_DELAY);
+	const TickType_t xFrequency = 50/portTICK_PERIOD_MS;
+	TickType_t xLastWakeTime = xTaskGetTickCount();
+	uint8_t TX_Message[8];
+	memcpy(TX_Message, data, length); // Copy data into txMessage array
+	//CAN_TX(id, data); // Send the message to the specified ID
+	xQueueSend(msgOutQ, TX_Message, portMAX_DELAY);
 }
 
 void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
@@ -53,15 +58,17 @@ void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
 			if (((prevKeyRow&1)^(currKeyRow&1))==1) {
 
 				if ((prevKeyRow&1) == 0){ 	//key Pressed
-					RX_Message[0] = 'R';
-					RX_Message[2] = keyNum;
+					TX_Message[0] = 'R';
 				}
+				
 				else{ 						//Key released
-					RX_Message[0] = 'P';
-					RX_Message[2] = keyNum;
+					TX_Message[0] = 'P';	
 				}
-				sendCurrKeys();	
+				TX_Message[1] = octave;
+				TX_Message[2] = keyNum;
+				sendCurrKeys();					
 			}
+
 			currKeyRow = currKeyRow >> 1;
 			prevKeyRow = prevKeyRow >> 1;
 		}
@@ -71,5 +78,5 @@ void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
 void sendCurrKeys(){
 	//TX_Message[1] = tempArray[0];
 	//TX_Message[2] = 9;
-	sendMessage(0x456,RX_Message,8);
+	sendMessage(0x456,TX_Message,8);
 }

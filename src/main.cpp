@@ -14,7 +14,7 @@ void setOutMuxBit(const uint8_t bitIdx, const bool value) {
 
 void setup() {
   //Initialise CAN
-  CAN_Init(true);
+  CAN_Init(false);
   setCANFilter(0x456,0x7ff);
   CAN_RegisterRX_ISR(CAN_RX_ISR);
   CAN_RegisterTX_ISR(CAN_TX_ISR);
