@@ -7,9 +7,13 @@
 #include <U8g2lib.h>
 #include <ES_CAN.h>
 
+//For note display
+#include <sstream>
+#include <iomanip>
+
 //Constants and Global variables
 //Settings
-inline volatile uint8_t WAVETYPE = 0; //0 is sawtooth
+inline volatile uint8_t WAVETYPE; //0 is sawtooth, 1 is pulse, 2 is sine, 3 is triangular
 inline const uint8_t POLYPHONY = 8; //How many simulataneous keys allowed
 inline const uint32_t INTERVAL = 100; //Display update interval
 //Display
