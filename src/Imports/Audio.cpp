@@ -1,6 +1,6 @@
 #include "ourLibrary.h"
 
-//Function for audio generation
+//Function for audio generation 
 void sampleISR() {
     static uint32_t phaseAcc[POLYPHONY];
     uint32_t Vout = 0;
