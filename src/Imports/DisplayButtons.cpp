@@ -118,7 +118,7 @@ void updateButtons(uint8_t prevKeys[], uint8_t currKeys[]) {
     uint8_t updateOctave = max(0, min(6, OCTAVE+rotationDirection(prevKeys[4]&0b11, currKeys[4]&0b11)));
     __atomic_store_n(&OCTAVE, updateOctave, __ATOMIC_RELAXED);
     //Wave key is third knob
-    uint8_t updateWave = max(0, min(1, WAVETYPE+rotationDirection((prevKeys[3]>>2)&0b11, (currKeys[3]>>2)&0b11)));
+    uint8_t updateWave = max(0, min(3, WAVETYPE+rotationDirection((prevKeys[3]>>2)&0b11, (currKeys[3]>>2)&0b11)));
     __atomic_store_n(&WAVETYPE, updateWave, __ATOMIC_RELAXED);
     //Master control is fourth knob
     int8_t updateMaster = rotationDirection(prevKeys[3]&0b11, currKeys[3]&0b11);

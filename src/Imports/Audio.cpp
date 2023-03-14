@@ -33,20 +33,24 @@ void sampleISR() {
             } else {
                 Vout += 16;
             }
-        } if(WAVETYPE == 2) { //Sine wave
+        } else if(WAVETYPE == 2) { //Sine wave
             if(octaveOffset > 0) {
                 phaseAcc[i] += (currentStepSize[i] >> octaveOffset);
             } else {
                 phaseAcc[i] += (currentStepSize[i] << -octaveOffset);
             }
-            Vout += (int)(sin((float)(phaseAcc[i] >> 24)*2*3.1415926/(float)13)*13/POLYPHONY);
+            //FIX THIS - OPTIMISE
+            //Vout += (int)(sin((float)(phaseAcc[i] >> 24)*2*3.1415926/(float)13)*13/POLYPHONY);
+            Vout += 0;
         } else if(WAVETYPE == 3) { //Triangular wave
             if(octaveOffset > 0) {
                 phaseAcc[i] += (currentStepSize[i] >> octaveOffset);
             } else {
                 phaseAcc[i] += (currentStepSize[i] << -octaveOffset);
             }
-            Vout += (int)(((phaseAcc[i]>>24)%13)*2.0/13 - 1.0) * 13/POLYPHONY;
+            //FIX THIS - OPTIMISE
+            //Vout += (int)(((phaseAcc[i]>>24)%13)*2.0/13 - 1.0) * 13/POLYPHONY;
+            Vout += 0;
         }
 
     }
