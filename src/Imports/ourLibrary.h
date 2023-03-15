@@ -27,7 +27,7 @@ inline QueueHandle_t msgInQ;
 inline QueueHandle_t msgOutQ;
 inline SemaphoreHandle_t CAN_TX_Semaphore;
 //Polyphony and audio settings
-inline const uint32_t stepSizes [] = {85899345, 90975216, 96246312, 102103086, 108155085, 114597536, 121430439, 128653793, 136267598, 144271855, 152861790, 162037402};
+inline const uint32_t stepSizes [] = {50953930, 54077542, 57201155, 60715219, 64229283, 68133799, 72233540, 76528508, 81018701, 85899345, 90975216, 96246312};
 inline volatile uint32_t currentStepSize[POLYPHONY];
 inline volatile uint8_t accumulatorMap[POLYPHONY]; //Accumulator map - contains information mapping accumulators and key presses to allow polyphony
 inline volatile uint8_t pianoKeyMap[84]; //Keeps track of which key is allocated to what accumulator - 7 octaves support so 84 keys total
