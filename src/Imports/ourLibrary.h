@@ -13,9 +13,9 @@
 
 //Constants and Global variables
 //Settings
-inline volatile uint8_t WAVETYPE; //0 is sawtooth, 1 is pulse, 2 is sine, 3 is triangular
+inline volatile int8_t WAVETYPE; //0 is sawtooth, 1 is pulse, 2 is sine, 3 is triangular
 inline const uint8_t POLYPHONY = 8; //How many simulataneous keys allowed
-inline const uint32_t INTERVAL = 100; //Display update interval
+inline const uint32_t INTERVAL = 100; //LED update interval
 //Display
 inline U8G2_SSD1305_128X32_NONAME_F_HW_I2C u8g2(U8G2_R0);
 inline std::string keyInfo;
@@ -32,23 +32,43 @@ inline volatile uint32_t currentStepSize[POLYPHONY];
 inline volatile uint8_t accumulatorMap[POLYPHONY]; //Accumulator map - contains information mapping accumulators and key presses to allow polyphony
 inline volatile uint8_t pianoKeyMap[84]; //Keeps track of which key is allocated to what accumulator - 7 octaves support so 84 keys total
 //Buttons
-inline volatile uint8_t VOLUMEMOD = 5;
-inline volatile uint8_t OCTAVE = 4; //Octave number
+inline volatile int8_t VOLUMEMOD = 5;
+inline volatile int8_t OCTAVE = 4; //Octave number
 inline volatile uint8_t MASTER_ID = 100;
-inline volatile uint8_t ISMASTER = true; //Is the master (is responsible for playing keys?)
-
+inline volatile bool ISMASTER = true; //Is the master (is responsible for playing keys?)
+//Storage and recording
+struct keyRecord {
+    bool keyEnabled = false;
+    char eventType = 'R';
+    uint8_t octave = 0;
+    uint8_t key = 0;
+    uint32_t time = 0;
+};
+inline volatile uint8_t SCREENNUM = 0; 
+inline volatile bool ISRECORDING = false;
+inline volatile bool ISPLAYBACK = false;
+inline volatile uint32_t REFTIMER;
+inline const uint16_t MAXKEYS = 255;
+//inline SemaphoreHandle_t keyMemoryMutex;
+inline volatile keyRecord keyMemory[MAXKEYS];
+inline volatile uint16_t CURRENTKEY = 0;
 
 //Shaheen
 
 uint8_t readCols();
 void setRow(uint8_t rowIdx);
-void sampleISR();
 void allocAccumulator(uint8_t key, uint8_t octaveNum);
 void deallocAccumulator(uint8_t key, uint8_t octaveNum);
 void scanKeysTask(void * pvParameters);
 void displayUpdateTask(void * pvParameters);
+void playbackTask(void * pvParameters);
 void updateButtons(uint8_t prevKeys[], uint8_t currKeys[]);
 int8_t rotationDirection(uint8_t prevState, uint8_t currState);
+void printTime();
+void mainScreen();
+void settingsScreen();
+void recordScreen();
+void playScreen();
 
 //Shaanuka
 void CAN_RX_ISR();
@@ -58,9 +78,13 @@ void sendCurrKeys();
 void CANSend(void * pvParameters);
 void CAN_TX_ISR();
 void stateChange(uint8_t prevKeys[], uint8_t currKeys[]);
+
 //Valia
+void printKey();
+std::string hexToBin(uint16_t hexVal);
 
 //Andreas
+void sampleISR();
 
 //Pin definitions
 //Row select and enable

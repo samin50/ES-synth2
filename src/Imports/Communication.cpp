@@ -43,6 +43,10 @@ void decodeTask(void *pvParamters) {
 }
 
 void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
+	//Disable registering keypresses during playback
+	if (ISPLAYBACK) {
+		return;
+	}
 	uint8_t prevKeyRow;
 	uint8_t currKeyRow;
 	uint8_t columnIndex = 0;

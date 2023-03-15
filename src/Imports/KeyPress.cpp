@@ -40,13 +40,8 @@ void scanKeysTask(void * pvParameters) {
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(keyArray), std::end(keyArray), std::begin(prevArray));
         xSemaphoreGive(keyArrayMutex);
-        
-        stateChange(prevArray,currArray);
         updateButtons(prevArray, currArray);
-        //FOR VALIA/ANDREAS: prevArray IS THE PREVIOUS STATE. currArray IS THE NEW STATE.
-        //prevArray = previous state
-        //currArray = current state
-        //Copy into keyArray - done at the end.
+        stateChange(prevArray,currArray);
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(currArray), std::end(currArray), std::begin(keyArray));
         xSemaphoreGive(keyArrayMutex);
@@ -66,6 +61,15 @@ void allocAccumulator(uint8_t key, uint8_t octaveNum) {
             __atomic_store_n(&accumulatorMap[i], octaveNum, __ATOMIC_RELAXED);
             //Set the step size for the accumulator according to the key number
             __atomic_store_n(&currentStepSize[i], stepSizes[key], __ATOMIC_RELAXED);
+            //If recording - store as successful keypress, no need for atomic access as this is only thread with access
+            if ((ISRECORDING) && (CURRENTKEY+1 < MAXKEYS)) {
+                keyMemory[CURRENTKEY].keyEnabled = true;
+                keyMemory[CURRENTKEY].eventType = 'P';
+                keyMemory[CURRENTKEY].octave = octaveNum;
+                keyMemory[CURRENTKEY].key = key;
+                keyMemory[CURRENTKEY].time = REFTIMER-millis();
+                __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
+            }
             break;
         }
     }
@@ -73,8 +77,109 @@ void allocAccumulator(uint8_t key, uint8_t octaveNum) {
 
 //Deallocate an accumulator from CAN Bus or itself
 void deallocAccumulator(uint8_t key, uint8_t octaveNum) {
-  uint8_t newKey = (octaveNum*12)+key;
-  //pianoKeyMap[newKey] gives the accumulator index mapped to newKey which ranges from 0-84
-  __atomic_store_n(&accumulatorMap[pianoKeyMap[newKey]], NULL, __ATOMIC_RELAXED);
-  __atomic_store_n(&currentStepSize[pianoKeyMap[newKey]], 0, __ATOMIC_RELAXED);
+    uint8_t newKey = (octaveNum*12)+key;
+    //pianoKeyMap[newKey] gives the accumulator index mapped to newKey which ranges from 0-84
+    __atomic_store_n(&accumulatorMap[pianoKeyMap[newKey]], NULL, __ATOMIC_RELAXED);
+    __atomic_store_n(&currentStepSize[pianoKeyMap[newKey]], 0, __ATOMIC_RELAXED); 
+    if ((ISRECORDING) && (CURRENTKEY+1 < MAXKEYS)) {
+        keyMemory[CURRENTKEY].keyEnabled = true;
+        keyMemory[CURRENTKEY].eventType = 'R';
+        keyMemory[CURRENTKEY].octave = octaveNum;
+        keyMemory[CURRENTKEY].key = key;
+        keyMemory[CURRENTKEY].time = REFTIMER-millis();
+        __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
+    }
+}
+
+//Update settings and change screens
+void updateButtons(uint8_t prevKeys[], uint8_t currKeys[]) {
+    int8_t K0 = rotationDirection((prevKeys[4]>>2)&0b11, (currKeys[4]>>2)&0b11);
+    int8_t K1 = rotationDirection(prevKeys[4]&0b11, currKeys[4]&0b11);
+    int8_t K2 = rotationDirection((prevKeys[3]>>2)&0b11, (currKeys[3]>>2)&0b11);
+    int8_t K3 = rotationDirection(prevKeys[3]&0b11, currKeys[3]&0b11);
+    if (SCREENNUM == 0) { //Main screen
+        //Volume key is first knob
+        __atomic_store_n(&VOLUMEMOD, max(0, min(8, VOLUMEMOD+K0)), __ATOMIC_RELAXED);
+        //Octave key is second knob
+        __atomic_store_n(&OCTAVE,  max(0, min(6, OCTAVE+K1)), __ATOMIC_RELAXED);
+        //Wave key is third knob
+        __atomic_store_n(&WAVETYPE, max(0, min(3, WAVETYPE+K2)), __ATOMIC_RELAXED);
+        //Settings control
+        if(K3 == 1) {
+            __atomic_store_n(&SCREENNUM, 1, __ATOMIC_RELAXED);
+        }
+        if (K3 == -1) {
+            __atomic_store_n(&SCREENNUM, 0, __ATOMIC_RELAXED);
+        }
+    } else if (SCREENNUM == 1) { //Settings screen
+        //Master control is first knob
+        if(K0 == 1) {
+            __atomic_store_n(&ISMASTER, true, __ATOMIC_RELAXED);
+        }
+        if(K0 == -1) {
+            __atomic_store_n(&ISMASTER, false, __ATOMIC_RELAXED);
+        }
+        //Record screen is second knob
+         if(K1 == 1) {
+            //Begin record
+            __atomic_store_n(&SCREENNUM, 2, __ATOMIC_RELAXED);
+            __atomic_store_n(&CURRENTKEY, 0, __ATOMIC_RELAXED);
+            __atomic_store_n(&REFTIMER, millis(), __ATOMIC_RELAXED);
+            __atomic_store_n(&ISRECORDING, true, __ATOMIC_RELAXED);
+        }
+        if(K1 == -1) {
+            __atomic_store_n(&SCREENNUM, 1, __ATOMIC_RELAXED);
+        }
+        //Playback screen is knob 2
+         if(K2 == 1) {
+            //Start playback
+            __atomic_store_n(&CURRENTKEY, 0, __ATOMIC_RELAXED);
+            __atomic_store_n(&SCREENNUM, 3, __ATOMIC_RELAXED);
+            __atomic_store_n(&REFTIMER, millis(), __ATOMIC_RELAXED);
+            __atomic_store_n(&ISPLAYBACK, true, __ATOMIC_RELAXED);
+        }
+        if(K2 == -1) {
+            __atomic_store_n(&SCREENNUM, 1, __ATOMIC_RELAXED);
+        }
+        //Return
+        if(K3 == 1) {
+            __atomic_store_n(&SCREENNUM, 1, __ATOMIC_RELAXED);
+        }
+        if(K3 == -1) {
+            __atomic_store_n(&SCREENNUM, 0, __ATOMIC_RELAXED);
+        }
+    } else if (SCREENNUM == 2) { //Record screen
+         //Return
+        if(K3 == 1) {
+            __atomic_store_n(&SCREENNUM, 2, __ATOMIC_RELAXED);
+        }
+        if(K3 == -1) {
+            __atomic_store_n(&SCREENNUM, 0, __ATOMIC_RELAXED);
+            __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
+            __atomic_store_n(&ISRECORDING, false, __ATOMIC_RELAXED);
+            //Disable the key after
+            if (CURRENTKEY <= MAXKEYS) {
+                keyMemory[CURRENTKEY].keyEnabled = false;
+            }
+        }
+    } else if (SCREENNUM == 3) { //Playback screen
+        //Return
+        if(K3 == 1) {
+            __atomic_store_n(&SCREENNUM, 3, __ATOMIC_RELAXED);
+        }
+        if(K3 == -1) {
+            __atomic_store_n(&SCREENNUM, 0, __ATOMIC_RELAXED);
+            __atomic_store_n(&ISPLAYBACK, false, __ATOMIC_RELAXED);
+        }
+    }
+}
+
+int8_t rotationDirection(uint8_t prevState, uint8_t currState) {
+    //Implement state transition
+    if ((prevState == 0 && currState == 1) || (prevState == 3 && currState == 2)) {
+        return 1;
+    } else if ((prevState == 0 && currState == 2) || (prevState == 2 && currState == 3)) {
+        return -1;
+    }
+    return 0;
 }
