@@ -54,6 +54,7 @@ void sampleISR() {
         }
 
     }
+    
     //Volume control here
     analogWrite(OUTR_PIN, (((Vout + 128)*VOLUMEMOD) >> 3));
 }
