@@ -28,7 +28,8 @@ void sampleISR() {
             } else {
                 phaseAcc[i] += (currentStepSize[i] << -octaveOffset);
             }
-            if ((phaseAcc[i] >> 24) < 7) {
+
+            if ((phaseAcc[i] >> 24) < 128) {
                 Vout -= 16;
             } else {
                 Vout += 16;
@@ -39,22 +40,25 @@ void sampleISR() {
             } else {
                 phaseAcc[i] += (currentStepSize[i] << -octaveOffset);
             }
-            //FIX THIS - OPTIMISE
-            //Vout += (int)(sin((float)(phaseAcc[i] >> 24)*2*3.1415926/(float)13)*13/POLYPHONY);
-            Vout += 0;
+            
+            uint8_t sineIndx = (phaseAcc[i] >> 24) % 256;
+            int32_t sineVal = sinLUT[sineIndx];
+
+            Vout += (sineVal - 128) / POLYPHONY / 2;
         } else if(WAVETYPE == 3) { //Triangular wave
             if(octaveOffset > 0) {
                 phaseAcc[i] += (currentStepSize[i] >> octaveOffset);
             } else {
                 phaseAcc[i] += (currentStepSize[i] << -octaveOffset);
             }
-            //FIX THIS - OPTIMISE
-            //Vout += (int)(((phaseAcc[i]>>24)%13)*2.0/13 - 1.0) * 13/POLYPHONY;
-            Vout += 0;
-        }
 
+            if ((phaseAcc[i] >> 24) < 128) {
+                Vout += floor(((phaseAcc[i] >> 24) * 2) / POLYPHONY);
+            } else {
+                Vout += floor((505 - ((phaseAcc[i] >> 24) * 2)) / POLYPHONY);
+            }
+        }
     }
-    
     //Volume control here
     analogWrite(OUTR_PIN, (((Vout + 128)*VOLUMEMOD) >> 3));
 }
