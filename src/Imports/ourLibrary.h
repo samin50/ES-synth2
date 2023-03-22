@@ -14,7 +14,7 @@
 //Constants and Global variables
 //Settings
 inline volatile uint32_t dur, start1, end1; // for time analysis
-inline volatile const int sinLUT[256] = {0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 
+inline volatile const int32_t sinLUT[256] = {0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 
                         72, 78, 84, 89, 95, 101, 106, 112, 117, 123, 128, 
                         133, 138, 143, 148, 153, 158, 163, 167, 172, 176, 
                         181, 185, 189, 193, 197, 200, 204, 207, 211, 214, 
