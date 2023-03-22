@@ -13,7 +13,6 @@
 
 //Constants and Global variables
 //Settings
-<<<<<<< HEAD
 inline volatile uint32_t dur, start1, end1; // for time analysis
 inline volatile const int sinLUT[256] = {0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 
                         72, 78, 84, 89, 95, 101, 106, 112, 117, 123, 128, 
@@ -41,9 +40,7 @@ inline volatile const int sinLUT[256] = {0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 6
                         -163, -158, -153, -148, -143, -138, -133, -128, -123, 
                         -117, -112, -106, -101, -95, -90, -84, -78, -72, -66, 
                         -60, -54, -48, -42, -36, -30, -24, -18, -12, -6};
-=======
 inline volatile int8_t WAVETYPE; //0 is sawtooth, 1 is pulse, 2 is sine, 3 is triangular
->>>>>>> master
 inline const uint8_t POLYPHONY = 8; //How many simulataneous keys allowed
 inline const uint32_t INTERVAL = 100; //LED update interval
 //Display
