@@ -43,7 +43,6 @@ void scanKeysTask(void * pvParameters) {
         updateButtons(prevArray, currArray);
         stateChange(prevArray,currArray);
         readJoystick();
-        //Serial.println(PITCHBEND);
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(currArray), std::end(currArray), std::begin(keyArray));
         xSemaphoreGive(keyArrayMutex);
@@ -182,7 +181,9 @@ int8_t rotationDirection(uint8_t prevState, uint8_t currState) {
 
 //Read and joystick value and store for pitch bending
 void readJoystick() {
-    __atomic_store_n(&JOYSTICKX, analogRead(JOYX_PIN), __ATOMIC_RELAXED);
-    uint32_t joyYRead = max(1, int((1087-analogRead(JOYY_PIN))/64));
+    uint32_t joyXRead = max(1, int((1023-analogRead(JOYX_PIN))/8));
+    __atomic_store_n(&JOYSTICKX, joyXRead, __ATOMIC_RELAXED);
+    //Pitch bend
+    uint32_t joyYRead = max(1, int((1087-analogRead(JOYY_PIN))/64)); //Offset of 64 to avoid scaling volume to 0
     __atomic_store_n(&JOYSTICKY, joyYRead, __ATOMIC_RELAXED);
 }

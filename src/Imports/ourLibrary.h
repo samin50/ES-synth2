@@ -66,9 +66,9 @@ inline volatile int8_t OCTAVE = 4; //Octave number
 inline volatile uint8_t MASTER_ID = 100;
 inline volatile bool ISMASTER = true; //Is the master (is responsible for playing keys?)
 //Joystick
+inline volatile uint32_t ISRCOUNTER = 0;
 inline volatile uint32_t JOYSTICKX;
 inline volatile uint32_t JOYSTICKY;
-inline volatile float PITCHBEND;
 //Storage and recording
 struct keyRecord {
     char eventType = 'R';
@@ -80,7 +80,7 @@ inline volatile uint8_t SCREENNUM = 0;
 inline volatile bool ISRECORDING = false;
 inline volatile bool ISPLAYBACK = false;
 inline volatile uint32_t REFTIMER;
-inline const uint16_t MAXKEYS = 256;
+inline const uint16_t MAXKEYS = 512;
 inline volatile keyRecord keyMemory[MAXKEYS];
 inline volatile uint16_t CURRENTKEY = 0;
 inline volatile uint16_t LASTKEY = 0;

@@ -52,7 +52,6 @@ void setup() {
   TaskHandle_t scanKeysHandle = NULL;
   xTaskCreate(scanKeysTask, "scanKeys", 512, NULL, 3,	&scanKeysHandle);
   keyArrayMutex = xSemaphoreCreateMutex();
-  accumulatorMapMutex = xSemaphoreCreateMutex();
   //Playback
   TaskHandle_t playbackTaskHandle = NULL;
   xTaskCreate(playbackTask, "playback", 256, NULL, 1,	&playbackTaskHandle);
