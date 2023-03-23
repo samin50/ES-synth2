@@ -55,20 +55,43 @@ void printKey() {
      //Display button press
     uint32_t res = 0;
     uint8_t tempArray[8];
-    std::string notesStr = "";
-    std::string notes[12]= {"C", "C#","D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
-    //Copy from Accumulator
-    std::copy(std::begin(accumulatorMap), std::end(accumulatorMap), std::begin(tempArray));
-    for (int i =0; i<8;i++){
-        if (accumulatorMap[i]!=0){
-            notesStr += notes[accumulatorMap[i]%12]; //Adds key to display string
-            notesStr += std::to_string(accumulatorMap[i]/12); //Adds octave to display string
-            notesStr += " ";
-        }
+    //Copy from keyArray
+    xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
+    std::copy(std::begin(keyArray), std::end(keyArray), std::begin(tempArray));
+    xSemaphoreGive(keyArrayMutex);
+    //Obtain hex code for keypresses
+    for (int i = 0; i < 8; i++) {
+        res = res | (tempArray[i] << i*4);
     }
-    u8g2.setFont(u8g2_font_4x6_tr); //text size reduced for notes to fit all on the screen
-    u8g2.drawStr(2,6,notesStr.c_str());
-    u8g2.setFont(u8g2_font_5x7_tr);
+    //Note display
+    uint16_t notes_comb = res & 0x0FFF;
+    std::string binNotes = hexToBin(notes_comb);
+    std::string notesStr = "Keys: ";
+    if(binNotes[31] == '0')
+        notesStr += " C";
+    if(binNotes[30] == '0')
+        notesStr += " C#";
+    if(binNotes[29] == '0')
+        notesStr += " D";
+    if(binNotes[28] == '0')
+        notesStr += " D#";
+    if(binNotes[27] == '0')
+        notesStr += " E";
+    if(binNotes[26] == '0')
+        notesStr += " F";
+    if(binNotes[25] == '0')
+        notesStr += " F#";
+    if(binNotes[24] == '0')
+        notesStr += " G";
+    if(binNotes[23] == '0')
+        notesStr += " G#";
+    if(binNotes[22] == '0')
+        notesStr += " A";
+    if(binNotes[21] == '0')
+        notesStr += " A#";
+    if(binNotes[20] == '0')
+        notesStr += " B";
+    u8g2.drawStr(2,8,notesStr.c_str());
 }
 
 void printTime() {
@@ -79,11 +102,30 @@ void printTime() {
     u8g2.drawStr(2,32,returnStr.c_str());
 }
 
+std::string VolumeBars(std::string vol_perc){
+    int vol_percentage = stoi(vol_perc);
+    const int numSquares = 5;
+    const int fillThreshold = 20;
+    std::string volumeBar = "";
+    for (int i = 0; i < numSquares; i++) {
+        if (vol_percentage >= fillThreshold) {
+            volumeBar += u8"\u25A0"; // filled square Unicode symbol
+        } else {
+            volumeBar += u8"\u25A1"; // empty square Unicode symbol
+        }
+        vol_percentage -= 100 / numSquares;
+    }
+    return volumeBar;
+}
+
 void mainScreen() {
     std::string vol_perc = std::to_string(100*VOLUMEMOD/8) + "%";
-    std::string volumeStr = "Vol: " + vol_perc;
+    std::string speakerIcon = "\xf0\x9f\x94\x88"; // speaker Unicode symbol
+    std::string noteIcon = "\xf0\x9f\x8e\xb6";
+    std::string volumeBar = VolumeBars(vol_perc);
+    std::string volumeStr = speakerIcon + vol_perc;
     std::string settingStr = "Set Host + Rec/Play";
-    std::string octaveStr = "Oct: " + std::to_string(OCTAVE);
+    std::string octaveStr = noteIcon + std::to_string(OCTAVE);
     std::string waveStr;
     switch (WAVETYPE)
     {
@@ -126,11 +168,11 @@ void settingsScreen() {
 }
 
 void recordScreen() {
-    std::string keyStr = "Key Memory: " + std::to_string(CURRENTKEY) + "/" + std::to_string(MAXKEYS-1);
+    std::string keyStr = "Key Memory: " + std::to_string(CURRENTKEY) + "/" + std::to_string(MAXKEYS);
     u8g2.drawStr(2,16, keyStr.c_str());
 }
 
 void playScreen() {
-    std::string keyStr = "Key Number: " + std::to_string(CURRENTKEY) + "/" + std::to_string(MAXKEYS-1);
+    std::string keyStr = "Key Number: " + std::to_string(CURRENTKEY) + "/" + std::to_string(MAXKEYS);
     u8g2.drawStr(2,16, keyStr.c_str());
 }
