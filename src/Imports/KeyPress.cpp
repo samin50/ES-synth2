@@ -52,13 +52,16 @@ void scanKeysTask(void * pvParameters) {
 void allocAccumulator(uint8_t key, uint8_t octaveNum) {
     //Allocate freed accumulators to pressed keys
     uint16_t newKey = (octaveNum*12)+key;
+    Serial.print("New Key: ");
+    Serial.print(newKey);
+    Serial.print("  ");
     for(int i = 0; i < POLYPHONY; i++) {
         //If accumulator is free
         if(accumulatorMap[i] == NULL) {
             //Mark that key with the accumulator (fast lookup for deallocation)
             __atomic_store_n(&pianoKeyMap[newKey], i, __ATOMIC_RELAXED);
             //Write which key the previously free one is allocated to - stores octave information
-            __atomic_store_n(&accumulatorMap[i], octaveNum, __ATOMIC_RELAXED);
+            __atomic_store_n(&accumulatorMap[i], newKey, __ATOMIC_RELAXED);
             //Set the step size for the accumulator according to the key number
             __atomic_store_n(&currentStepSize[i], stepSizes[key], __ATOMIC_RELAXED);
             //If recording - store as successful keypress, no need for atomic access as this is only thread with access

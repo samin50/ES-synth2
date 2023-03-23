@@ -13,7 +13,7 @@ void sampleISR() {
     //Polyphonic keypresses
     for(int i = 0; i < POLYPHONY; i++) {
         //Obtain octave information from accumulatorMap
-        octaveOffset = 4-accumulatorMap[i];
+        octaveOffset = 4-(accumulatorMap[i]/12);
         if (octaveOffset > 0) {
             phaseAcc[i] += (currentStepSize[i] >> octaveOffset);
         } else {

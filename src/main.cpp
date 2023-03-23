@@ -42,7 +42,7 @@ void setup() {
   xTaskCreate(CANSend, "CANSend", 256, NULL, 4, NULL);
   //Initialise display
   TaskHandle_t displayUpdateTaskHandle = NULL;
-  xTaskCreate(displayUpdateTask, "displayUpdate", 128, NULL, 2,	&displayUpdateTaskHandle);
+  xTaskCreate(displayUpdateTask, "displayUpdate", 128, NULL, 1,	&displayUpdateTaskHandle);
   setOutMuxBit(DRST_BIT, LOW);  //Assert display logic reset
   delayMicroseconds(2);
   setOutMuxBit(DRST_BIT, HIGH);  //Release display logic reset
@@ -51,11 +51,11 @@ void setup() {
 
   //Keyscanner
   TaskHandle_t scanKeysHandle = NULL;
-  xTaskCreate(scanKeysTask, "scanKeys", 512, NULL, 5,	&scanKeysHandle);
+  xTaskCreate(scanKeysTask, "scanKeys", 512, NULL, 4,	&scanKeysHandle);
   keyArrayMutex = xSemaphoreCreateMutex();
   //Playback
   TaskHandle_t playbackTaskHandle = NULL;
-  xTaskCreate(playbackTask, "playback", 256, NULL, 1,	&playbackTaskHandle);
+  xTaskCreate(playbackTask, "playback", 256, NULL, 5,	&playbackTaskHandle);
   //Hardware Timer for sound
   TIM_TypeDef *Instance = TIM1;
   HardwareTimer *sampleTimer = new HardwareTimer(Instance);
