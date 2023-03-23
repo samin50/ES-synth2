@@ -31,4 +31,4 @@
 | sampleISR Polyphony: 4    | Interrupt              | 0.0455                              | 0.028                            | 50.811          | 50.811               |
 | sampleISR Polyphony: 3    | Interrupt              | 0.0455                              | 0.025                            | 45.367          | 45.367               |
 | sampleISR Polyphony: 2    | Interrupt              | 0.0455                              | 0.021                            | 38.108          | 38.108               |
-| sampleISR Polyphony: 1    | Interrupt              | 0.0455                              | 0.018                            | 32.664          | 32.664               |
+| sampleISR Polyphony: 1    | Interrupt              | 0.0455                              | 0.018                            | 32.664          | 32.664               
