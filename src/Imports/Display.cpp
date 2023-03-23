@@ -67,7 +67,7 @@ void printKey() {
         }
     }
     u8g2.setFont(u8g2_font_4x6_tr); //text size reduced for notes to fit all on the screen
-    u8g2.drawStr(2,8,notesStr.c_str());
+    u8g2.drawStr(2,6,notesStr.c_str());
     u8g2.setFont(u8g2_font_5x7_tr);
 }
 
