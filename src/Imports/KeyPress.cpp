@@ -52,9 +52,6 @@ void scanKeysTask(void * pvParameters) {
 void allocAccumulator(uint8_t key, uint8_t octaveNum) {
     //Allocate freed accumulators to pressed keys
     uint16_t newKey = (octaveNum*12)+key;
-    Serial.print("New Key: ");
-    Serial.print(newKey);
-    Serial.print("  ");
     for(int i = 0; i < POLYPHONY; i++) {
         //If accumulator is free
         if(accumulatorMap[i] == NULL) {

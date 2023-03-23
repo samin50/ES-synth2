@@ -55,56 +55,20 @@ void printKey() {
      //Display button press
     uint32_t res = 0;
     uint8_t tempArray[8];
-    std::string notesStr = "Keys: ";
-    //Copy from keyArray
-    // xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
-    std::string notes[12]= {" C", " C#"," D", " D#", " E", " F", "F#", " G", " G#", " A", " A#", " B"};
-    Serial.print(" || ");
+    std::string notesStr = "";
+    std::string notes[12]= {"C", "C#","D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+    //Copy from Accumulator
     std::copy(std::begin(accumulatorMap), std::end(accumulatorMap), std::begin(tempArray));
     for (int i =0; i<8;i++){
         if (accumulatorMap[i]!=0){
-            notesStr += notes[accumulatorMap[i]%12];
+            notesStr += notes[accumulatorMap[i]%12]; //Adds key to display string
+            notesStr += std::to_string(accumulatorMap[i]/12); //Adds octave to display string
+            notesStr += " ";
         }
     }
+    u8g2.setFont(u8g2_font_4x6_tr); //text size reduced for notes to fit all on the screen
     u8g2.drawStr(2,8,notesStr.c_str());
-
-    // xSemaphoreGive(keyArrayMutex);
-    //Obtain hex code for keypresses
-    // for (int i = 0; i < 8; i++) {
-    //     res = res | ((tempArray[i]%12)<<i*4);
-    // }
-    //Note display
-    // uint16_t notes_comb = (res) & 0x0FFF;
-    // std::string binNotes = hexToBin(res);
-    // std::string notesStr = "Keys: ";
-    // for (int i = 0; i<32; i++){
-    //     Serial.print(binNotes[i]);
-    // }
-    // if(binNotes[0] == '1')
-    //     notesStr += " C";
-    // if(binNotes[1] == '1')
-    //     notesStr += " C#";
-    // if(binNotes[29] == '0')
-    //     notesStr += " D";
-    // if(binNotes[28] == '0')
-    //     notesStr += " D#";
-    // if(binNotes[27] == '0')
-    //     notesStr += " E";
-    // if(binNotes[26] == '0')
-    //     notesStr += " F";
-    // if(binNotes[25] == '0')
-    //     notesStr += " F#";
-    // if(binNotes[24] == '0')
-    //     notesStr += " G";
-    // if(binNotes[23] == '0')
-    //     notesStr += " G#";
-    // if(binNotes[22] == '0')
-    //     notesStr += " A";
-    // if(binNotes[21] == '0')
-    //     notesStr += " A#";
-    // if(binNotes[20] == '0')
-    //     notesStr += " B";
-    // u8g2.drawStr(2,8,notesStr.c_str());
+    u8g2.setFont(u8g2_font_5x7_tr);
 }
 
 void printTime() {
