@@ -56,43 +56,20 @@ void printKey() {
      //Display button press
     uint32_t res = 0;
     uint8_t tempArray[8];
-    //Copy from keyArray
-    xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
-    std::copy(std::begin(keyArray), std::end(keyArray), std::begin(tempArray));
-    xSemaphoreGive(keyArrayMutex);
-    //Obtain hex code for keypresses
-    for (int i = 0; i < 8; i++) {
-        res = res | (tempArray[i] << i*4);
+    std::string notesStr = "";
+    std::string notes[12]= {"C", "C#","D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+    //Copy from Accumulator
+    std::copy(std::begin(accumulatorMap), std::end(accumulatorMap), std::begin(tempArray));
+    for (int i =0; i<8;i++){
+        if (accumulatorMap[i]!=0){
+            notesStr += notes[accumulatorMap[i]%12]; //Adds key to display string
+            notesStr += std::to_string(accumulatorMap[i]/12); //Adds octave to display string
+            notesStr += " ";
+        }
     }
-    //Note display
-    uint16_t notes_comb = res & 0x0FFF;
-    std::string binNotes = hexToBin(notes_comb);
-    std::string notesStr = "Keys: ";
-    if(binNotes[31] == '0')
-        notesStr += " C";
-    if(binNotes[30] == '0')
-        notesStr += " C#";
-    if(binNotes[29] == '0')
-        notesStr += " D";
-    if(binNotes[28] == '0')
-        notesStr += " D#";
-    if(binNotes[27] == '0')
-        notesStr += " E";
-    if(binNotes[26] == '0')
-        notesStr += " F";
-    if(binNotes[25] == '0')
-        notesStr += " F#";
-    if(binNotes[24] == '0')
-        notesStr += " G";
-    if(binNotes[23] == '0')
-        notesStr += " G#";
-    if(binNotes[22] == '0')
-        notesStr += " A";
-    if(binNotes[21] == '0')
-        notesStr += " A#";
-    if(binNotes[20] == '0')
-        notesStr += " B";
-    u8g2.drawStr(2,8,notesStr.c_str());
+    u8g2.setFont(u8g2_font_4x6_tr); //text size reduced for notes to fit all on the screen
+    u8g2.drawStr(2,6,notesStr.c_str());
+    u8g2.setFont(u8g2_font_5x7_tr);
 }
 
 void printTime() {
