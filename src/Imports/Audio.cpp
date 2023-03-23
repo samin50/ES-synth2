@@ -1,6 +1,7 @@
 #include "ourLibrary.h"
 
-//Function for audio generation
+//Function for audio generation - 22000 times a second
+//Desired vibrato frequency is ~6Hz, increment sample by 1 every
 void sampleISR() {
     static uint32_t phaseAcc[POLYPHONY];
     int32_t Vout = 0;
@@ -12,37 +13,46 @@ void sampleISR() {
     }
     //Polyphonic keypresses
     for(int i = 0; i < POLYPHONY; i++) {
-        //Obtain octave information from accumulatorMap
-        //octaveOffset = pow(2, 4-accumulatorMap[i]);
-        //phaseAcc[i] += ((currentStepSize[i]*JOYSTICKX)/1023.0)*octaveOffset;
+        //Obtain octave information from accumulatorMap and use pitch bend
         octaveOffset = 4-accumulatorMap[i];
-        // if (octaveOffset > 0) {
-        //     phaseAcc[i] += ((currentStepSize[i] >> octaveOffset)*JOYSTICKY)/1023;
-        // } else {
-        //     phaseAcc[i] += ((currentStepSize[i] << -octaveOffset)*JOYSTICKY)/1023;
-        //}
         if (octaveOffset > 0) {
             phaseAcc[i] += ((currentStepSize[i] >> octaveOffset)*JOYSTICKY)/8;
         } else {
             phaseAcc[i] += ((currentStepSize[i] << -octaveOffset)*JOYSTICKY)/8;
         }
-        //If the wave is sawtooth - simple addition
-        if(WAVETYPE == 0) {
-            Vout += ((phaseAcc[i] >> 24) - 128)/POLYPHONY;
-        } else if(WAVETYPE == 1) { //Pulse wave
-            if ((phaseAcc[i] >> 24) < 128) {
-                Vout -= 127/POLYPHONY;
-            } else {
-                Vout += 127/POLYPHONY;
+        uint8_t sineIndx = (phaseAcc[i] >> 24) % 256;
+        switch (WAVETYPE) {
+            case 0:
+            {
+            //Sawtooth
+                Vout += ((phaseAcc[i] >> 24) - 128)/POLYPHONY;
+                break;
             }
-        } else if(WAVETYPE == 2) { //Sine wave
-            uint8_t sineIndx = (phaseAcc[i] >> 24) % 256;
-            Vout += (sinLUT[sineIndx]/2) / (POLYPHONY);
-        } else if(WAVETYPE == 3) { //Triangular wave
-            if ((phaseAcc[i] >> 24) < 128) {
-                Vout += ((phaseAcc[i] >> 24)) / POLYPHONY;
-            } else {
-                Vout += (255 - ((phaseAcc[i] >> 24))) / POLYPHONY;
+            case 1:
+            {
+            //Pulse wave
+                if ((phaseAcc[i] >> 24) < 128) {
+                    Vout -= 127/POLYPHONY;
+                } else {
+                    Vout += 127/POLYPHONY;
+                }
+                break;
+            }
+            case 2:
+            {
+            //Sine wave
+                Vout += (sinLUT[sineIndx]/2) / (POLYPHONY);
+                break;
+            }
+            case 3: 
+            {
+            //Triangular wave
+                if ((phaseAcc[i] >> 24) < 128) {
+                    Vout += ((phaseAcc[i] >> 24)) / POLYPHONY;
+                } else {
+                    Vout += (255 - ((phaseAcc[i] >> 24))) / POLYPHONY;
+                }
+                break;
             }
         }
     }
