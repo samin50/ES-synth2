@@ -123,7 +123,7 @@ void mainScreen() {
     std::string speakerIcon = "\xf0\x9f\x94\x88"; // speaker Unicode symbol
     std::string noteIcon = "\xf0\x9f\x8e\xb6";
     std::string volumeBar = VolumeBars(vol_perc);
-    std::string volumeStr = speakerIcon + vol_perc;
+    std::string volumeStr = speakerIcon + volumeBar;
     std::string settingStr = "Set Host + Rec/Play";
     std::string octaveStr = noteIcon + std::to_string(OCTAVE);
     std::string waveStr;
