@@ -48,11 +48,11 @@ void setup() {
   setOutMuxBit(DRST_BIT, HIGH);  //Release display logic reset
   u8g2.begin();
   setOutMuxBit(DEN_BIT, HIGH);  //Enable display power supply
-
   //Keyscanner
   TaskHandle_t scanKeysHandle = NULL;
   xTaskCreate(scanKeysTask, "scanKeys", 512, NULL, 4,	&scanKeysHandle);
   keyArrayMutex = xSemaphoreCreateMutex();
+  accumulatorMapMutex = xSemaphoreCreateMutex();
   //Playback
   TaskHandle_t playbackTaskHandle = NULL;
   xTaskCreate(playbackTask, "playback", 256, NULL, 5,	&playbackTaskHandle);

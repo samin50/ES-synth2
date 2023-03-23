@@ -42,6 +42,8 @@ void scanKeysTask(void * pvParameters) {
         xSemaphoreGive(keyArrayMutex);
         updateButtons(prevArray, currArray);
         stateChange(prevArray,currArray);
+        readJoystick();
+        //Serial.println(PITCHBEND);
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(currArray), std::end(currArray), std::begin(keyArray));
         xSemaphoreGive(keyArrayMutex);
@@ -61,14 +63,20 @@ void allocAccumulator(uint8_t key, uint8_t octaveNum) {
             __atomic_store_n(&accumulatorMap[i], newKey, __ATOMIC_RELAXED);
             //Set the step size for the accumulator according to the key number
             __atomic_store_n(&currentStepSize[i], stepSizes[key], __ATOMIC_RELAXED);
-            //If recording - store as successful keypress, no need for atomic access as this is only thread with access
-            if ((ISRECORDING) && (CURRENTKEY+1 < MAXKEYS)) {
-                keyMemory[CURRENTKEY].keyEnabled = true;
-                keyMemory[CURRENTKEY].eventType = 'P';
-                keyMemory[CURRENTKEY].octave = octaveNum;
-                keyMemory[CURRENTKEY].key = key;
-                keyMemory[CURRENTKEY].time = REFTIMER-millis();
-                __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
+            //If recording - store as successful keypress, no need for atomic access as this is only thread with access to keymemory, and alloc dealloc does not occur at the same time
+            if (ISRECORDING) {
+                 __atomic_store_n(&LASTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
+                if (CURRENTKEY+1 < MAXKEYS) {
+                    keyMemory[CURRENTKEY].eventType = 'P';
+                    keyMemory[CURRENTKEY].octave = octaveNum;
+                    keyMemory[CURRENTKEY].key = key;
+                    keyMemory[CURRENTKEY].time = REFTIMER-millis();
+                    //Increment current key
+                    __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
+                } else {
+                    //Disable reccording at record limit
+                    __atomic_store_n(&ISRECORDING, false, __ATOMIC_RELAXED);
+                }
             }
             break;
         }
@@ -81,13 +89,20 @@ void deallocAccumulator(uint8_t key, uint8_t octaveNum) {
     //pianoKeyMap[newKey] gives the accumulator index mapped to newKey which ranges from 0-84
     __atomic_store_n(&accumulatorMap[pianoKeyMap[newKey]], NULL, __ATOMIC_RELAXED);
     __atomic_store_n(&currentStepSize[pianoKeyMap[newKey]], 0, __ATOMIC_RELAXED); 
-    if ((ISRECORDING) && (CURRENTKEY+1 < MAXKEYS)) {
-        keyMemory[CURRENTKEY].keyEnabled = true;
-        keyMemory[CURRENTKEY].eventType = 'R';
-        keyMemory[CURRENTKEY].octave = octaveNum;
-        keyMemory[CURRENTKEY].key = key;
-        keyMemory[CURRENTKEY].time = REFTIMER-millis();
-        __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
+    if (ISRECORDING) {
+         __atomic_store_n(&LASTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
+        if (CURRENTKEY+1 < MAXKEYS) {
+            keyMemory[CURRENTKEY].eventType = 'R';
+            keyMemory[CURRENTKEY].octave = octaveNum;
+            keyMemory[CURRENTKEY].key = key;
+            keyMemory[CURRENTKEY].time = REFTIMER-millis();
+            //Increment current key
+            __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
+        } else {
+            //Disable recording at record limit
+            __atomic_store_n(&ISRECORDING, false, __ATOMIC_RELAXED);
+
+        }
     }
 }
 
@@ -104,7 +119,7 @@ void updateButtons(uint8_t prevKeys[], uint8_t currKeys[]) {
         __atomic_store_n(&OCTAVE,  max(0, min(6, OCTAVE+K1)), __ATOMIC_RELAXED);
         //Wave key is third knob
         __atomic_store_n(&WAVETYPE, max(0, min(3, WAVETYPE+K2)), __ATOMIC_RELAXED);
-        //Settings control
+        //Navigate to settings page
         if(K3 == 1) {
             __atomic_store_n(&SCREENNUM, 1, __ATOMIC_RELAXED);
         }
@@ -127,10 +142,7 @@ void updateButtons(uint8_t prevKeys[], uint8_t currKeys[]) {
             __atomic_store_n(&REFTIMER, millis(), __ATOMIC_RELAXED);
             __atomic_store_n(&ISRECORDING, true, __ATOMIC_RELAXED);
         }
-        if(K1 == -1) {
-            __atomic_store_n(&SCREENNUM, 1, __ATOMIC_RELAXED);
-        }
-        //Playback screen is knob 2
+        //Playback screen is third knob
          if(K2 == 1) {
             //Start playback
             __atomic_store_n(&CURRENTKEY, 0, __ATOMIC_RELAXED);
@@ -138,42 +150,26 @@ void updateButtons(uint8_t prevKeys[], uint8_t currKeys[]) {
             __atomic_store_n(&REFTIMER, millis(), __ATOMIC_RELAXED);
             __atomic_store_n(&ISPLAYBACK, true, __ATOMIC_RELAXED);
         }
-        if(K2 == -1) {
-            __atomic_store_n(&SCREENNUM, 1, __ATOMIC_RELAXED);
-        }
         //Return
-        if(K3 == 1) {
-            __atomic_store_n(&SCREENNUM, 1, __ATOMIC_RELAXED);
-        }
         if(K3 == -1) {
             __atomic_store_n(&SCREENNUM, 0, __ATOMIC_RELAXED);
         }
     } else if (SCREENNUM == 2) { //Record screen
          //Return
-        if(K3 == 1) {
-            __atomic_store_n(&SCREENNUM, 2, __ATOMIC_RELAXED);
-        }
         if(K3 == -1) {
             __atomic_store_n(&SCREENNUM, 0, __ATOMIC_RELAXED);
-            __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
             __atomic_store_n(&ISRECORDING, false, __ATOMIC_RELAXED);
-            //Disable the key after
-            if (CURRENTKEY <= MAXKEYS) {
-                keyMemory[CURRENTKEY].keyEnabled = false;
-            }
         }
     } else if (SCREENNUM == 3) { //Playback screen
         //Return
-        if(K3 == 1) {
-            __atomic_store_n(&SCREENNUM, 3, __ATOMIC_RELAXED);
-        }
-        if(K3 == -1) {
+        if(K3 == -1 && !ISPLAYBACK) {
             __atomic_store_n(&SCREENNUM, 0, __ATOMIC_RELAXED);
-            __atomic_store_n(&ISPLAYBACK, false, __ATOMIC_RELAXED);
+            //__atomic_store_n(&ISPLAYBACK, false, __ATOMIC_RELAXED);
         }
     }
 }
 
+//Knob rotation direction
 int8_t rotationDirection(uint8_t prevState, uint8_t currState) {
     //Implement state transition
     if ((prevState == 0 && currState == 1) || (prevState == 3 && currState == 2)) {
@@ -182,4 +178,11 @@ int8_t rotationDirection(uint8_t prevState, uint8_t currState) {
         return -1;
     }
     return 0;
+}
+
+//Read and joystick value and store for pitch bending
+void readJoystick() {
+    __atomic_store_n(&JOYSTICKX, analogRead(JOYX_PIN), __ATOMIC_RELAXED);
+    uint32_t joyYRead = max(1, int((1087-analogRead(JOYY_PIN))/64));
+    __atomic_store_n(&JOYSTICKY, joyYRead, __ATOMIC_RELAXED);
 }

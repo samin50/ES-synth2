@@ -126,11 +126,11 @@ void settingsScreen() {
 }
 
 void recordScreen() {
-    std::string keyStr = "Key Memory: " + std::to_string(CURRENTKEY) + "/" + std::to_string(MAXKEYS);
+    std::string keyStr = "Key Memory: " + std::to_string(CURRENTKEY) + "/" + std::to_string(MAXKEYS-1);
     u8g2.drawStr(2,16, keyStr.c_str());
 }
 
 void playScreen() {
-    std::string keyStr = "Key Number: " + std::to_string(CURRENTKEY) + "/" + std::to_string(MAXKEYS);
+    std::string keyStr = "Key Number: " + std::to_string(CURRENTKEY) + "/" + std::to_string(MAXKEYS-1);
     u8g2.drawStr(2,16, keyStr.c_str());
 }

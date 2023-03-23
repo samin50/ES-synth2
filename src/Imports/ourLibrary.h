@@ -14,32 +14,33 @@
 //Constants and Global variables
 //Settings
 inline volatile uint32_t dur, start1, end1; // for time analysis
-inline volatile const int32_t sinLUT[256] = {0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 
-                        72, 78, 84, 89, 95, 101, 106, 112, 117, 123, 128, 
-                        133, 138, 143, 148, 153, 158, 163, 167, 172, 176, 
-                        181, 185, 189, 193, 197, 200, 204, 207, 211, 214, 
-                        217, 220, 223, 225, 228, 230, 233, 235, 237, 239, 
-                        240, 242, 243, 245, 246, 247, 248, 248, 249, 249, 
-                        249, 249, 249, 249, 249, 248, 248, 247, 246, 245, 
-                        243, 242, 240, 239, 237, 235, 233, 230, 228, 226, 
-                        223, 220, 217, 214, 211, 207, 204, 200, 197, 193, 
-                        189, 185, 181, 176, 172, 167, 163, 158, 153, 148, 
-                        143, 138, 133, 128, 123, 117, 112, 106, 101, 95, 
-                        89, 84, 78, 72, 66, 60, 54, 48, 42, 36, 30, 24, 
-                        18, 12, 6, 0, -6, -12, -18, -24, -30, -36, -42, 
-                        -48, -54, -60, -66, -72, -78, -84, -89, -95, -101, 
-                        -106, -112, -117, -123, -128, -133, -138, -143, -148, 
-                        -153, -158, -163, -167, -172, -176, -181, -185, -189, 
-                        -193, -197, -200, -204, -207, -211, -214, -217, -220, 
-                        -223, -225, -228, -230, -233, -235, -237, -239, -240, 
-                        -242, -243, -245, -246, -247, -248, -248, -249, -249, 
-                        -249, -249, -249, -249, -249, -248, -248, -247, -246, 
-                        -245, -243, -242, -240, -239, -237, -235, -233, -230, 
-                        -228, -226, -223, -220, -217, -214, -211, -207, -204, 
-                        -200, -197, -193, -189, -185, -181, -176, -172, -167, 
-                        -163, -158, -153, -148, -143, -138, -133, -128, -123, 
-                        -117, -112, -106, -101, -95, -90, -84, -78, -72, -66, 
-                        -60, -54, -48, -42, -36, -30, -24, -18, -12, -6};
+inline volatile const int32_t sinLUT[256] = {
+    0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 
+72, 78, 84, 89, 95, 101, 106, 112, 117, 123, 128, 
+133, 138, 143, 148, 153, 158, 163, 167, 172, 176, 
+181, 185, 189, 193, 197, 200, 204, 207, 211, 214, 
+217, 220, 223, 225, 228, 230, 233, 235, 237, 239, 
+240, 242, 243, 245, 246, 247, 248, 248, 249, 249, 
+249, 249, 249, 249, 249, 248, 248, 247, 246, 245, 
+243, 242, 240, 239, 237, 235, 233, 230, 228, 226, 
+223, 220, 217, 214, 211, 207, 204, 200, 197, 193, 
+189, 185, 181, 176, 172, 167, 163, 158, 153, 148, 
+143, 138, 133, 128, 123, 117, 112, 106, 101, 95, 
+89, 84, 78, 72, 66, 60, 54, 48, 42, 36, 30, 24, 
+18, 12, 6, 0, -6, -12, -18, -24, -30, -36, -42, 
+-48, -54, -60, -66, -72, -78, -84, -89, -95, -101, 
+-106, -112, -117, -123, -128, -133, -138, -143, -148, 
+-153, -158, -163, -167, -172, -176, -181, -185, -189, 
+-193, -197, -200, -204, -207, -211, -214, -217, -220, 
+-223, -225, -228, -230, -233, -235, -237, -239, -240, 
+-242, -243, -245, -246, -247, -248, -248, -249, -249, 
+-249, -249, -249, -249, -249, -248, -248, -247, -246, 
+-245, -243, -242, -240, -239, -237, -235, -233, -230, 
+-228, -226, -223, -220, -217, -214, -211, -207, -204, 
+-200, -197, -193, -189, -185, -181, -176, -172, -167, 
+-163, -158, -153, -148, -143, -138, -133, -128, -123, 
+-117, -112, -106, -101, -95, -90, -84, -78, -72, -66, 
+-60, -54, -48, -42, -36, -30, -24, -18, -12, -6};
 inline volatile int8_t WAVETYPE; //0 is sawtooth, 1 is pulse, 2 is sine, 3 is triangular
 inline const uint8_t POLYPHONY = 8; //How many simulataneous keys allowed
 inline const uint32_t INTERVAL = 100; //LED update interval
@@ -58,14 +59,18 @@ inline const uint32_t stepSizes [] = {50953930, 54077542, 57201155, 60715219, 64
 inline volatile uint32_t currentStepSize[POLYPHONY];
 inline volatile uint8_t accumulatorMap[POLYPHONY]; //Accumulator map - contains information mapping accumulators and key presses to allow polyphony
 inline volatile uint8_t pianoKeyMap[84]; //Keeps track of which key is allocated to what accumulator - 7 octaves support so 84 keys total
+inline SemaphoreHandle_t accumulatorMapMutex;
 //Buttons
 inline volatile int8_t VOLUMEMOD = 5;
 inline volatile int8_t OCTAVE = 4; //Octave number
 inline volatile uint8_t MASTER_ID = 100;
 inline volatile bool ISMASTER = true; //Is the master (is responsible for playing keys?)
+//Joystick
+inline volatile uint32_t JOYSTICKX;
+inline volatile uint32_t JOYSTICKY;
+inline volatile float PITCHBEND;
 //Storage and recording
 struct keyRecord {
-    bool keyEnabled = false;
     char eventType = 'R';
     uint8_t octave = 0;
     uint8_t key = 0;
@@ -75,10 +80,10 @@ inline volatile uint8_t SCREENNUM = 0;
 inline volatile bool ISRECORDING = false;
 inline volatile bool ISPLAYBACK = false;
 inline volatile uint32_t REFTIMER;
-inline const uint16_t MAXKEYS = 255;
-//inline SemaphoreHandle_t keyMemoryMutex;
+inline const uint16_t MAXKEYS = 256;
 inline volatile keyRecord keyMemory[MAXKEYS];
 inline volatile uint16_t CURRENTKEY = 0;
+inline volatile uint16_t LASTKEY = 0;
 
 //Shaheen
 
@@ -96,6 +101,7 @@ void mainScreen();
 void settingsScreen();
 void recordScreen();
 void playScreen();
+void readJoystick();
 
 //Shaanuka
 void CAN_RX_ISR();
