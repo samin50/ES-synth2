@@ -86,9 +86,9 @@ std::string VolumeBars(std::string vol_perc){
     std::string volumeBar = "";
     for (int i = 0; i < numSquares; i++) {
         if (vol_percentage >= fillThreshold) {
-            volumeBar += "\xE2\x96\xA0"; // filled square Unicode symbol
+            volumeBar += u8"\xE2\x96\xA0"; // filled square Unicode symbol
         } else {
-            volumeBar += "\xE2\x96\xA1"; // empty square Unicode symbol
+            volumeBar += u8"\xE2\x96\xA1"; // empty square Unicode symbol
         }
         vol_percentage -= 100 / numSquares;
     }
@@ -96,8 +96,8 @@ std::string VolumeBars(std::string vol_perc){
 }
 
 void mainScreen() {
-    std::string speakerIcon = "\u1F508"; // speaker Unicode symbol
-    std::string noteIcon = "\u1F3B6";
+    std::string speakerIcon = u8"\u1F508"; // speaker Unicode symbol
+    std::string noteIcon = u8"\u1F3B6";
     std::string vol_perc = std::to_string(100*VOLUMEMOD/8);
     std::string volumeBar = VolumeBars(vol_perc);
     std::string volumeStr = speakerIcon + volumeBar;
