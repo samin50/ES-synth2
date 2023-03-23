@@ -61,14 +61,13 @@ inline volatile uint8_t accumulatorMap[POLYPHONY]; //Accumulator map - contains 
 inline volatile uint8_t pianoKeyMap[84]; //Keeps track of which key is allocated to what accumulator - 7 octaves support so 84 keys total
 inline SemaphoreHandle_t accumulatorMapMutex;
 //Buttons
-inline volatile int8_t VOLUMEMOD = 5;
-inline volatile int8_t OCTAVE = 4; //Octave number
+inline volatile int8_t VOLUMEMOD = 64;
+inline volatile int8_t OCTAVE = 5; //Octave number
 inline volatile uint8_t MASTER_ID = 100;
 inline volatile bool ISMASTER = true; //Is the master (is responsible for playing keys?)
 //Joystick
-inline volatile uint32_t ISRCOUNTER = 0;
-inline volatile uint32_t JOYSTICKX;
-inline volatile uint32_t JOYSTICKY;
+inline volatile int32_t JOYSTICKX;
+inline volatile int32_t JOYSTICKY;
 //Storage and recording
 struct keyRecord {
     char eventType = 'R';

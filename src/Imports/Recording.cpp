@@ -1,14 +1,4 @@
 #include "ourLibrary.h"
-
-
-void storeKeysMemory() {
-    
-}
-
-void loadKeysMemory() {
-    
-}
-
 //Task for playback
 void playbackTask(void * pvParameters) {
     const TickType_t xFrequency = 50/portTICK_PERIOD_MS; //Granuality in playback
@@ -19,7 +9,7 @@ void playbackTask(void * pvParameters) {
             continue;
         }
         //Disable playback if the next key is disabled
-        if (CURRENTKEY+1 == LASTKEY) {
+        if (CURRENTKEY+1 >= LASTKEY) {
             __atomic_store_n(&ISPLAYBACK, false, __ATOMIC_RELAXED);
             //Wipe accumlators
             for(int i = 0; i < POLYPHONY; i++) {

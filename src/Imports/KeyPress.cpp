@@ -1,4 +1,5 @@
 #include "ourLibrary.h"
+//File handles all key inputs
 
 //Read key key matrix columns
 uint8_t readCols() {
@@ -49,61 +50,6 @@ void scanKeysTask(void * pvParameters) {
     }
 }
 
-//Allocate an accumulator to a key either the from CAN Bus or from itself
-void allocAccumulator(uint8_t key, uint8_t octaveNum) {
-    //Allocate freed accumulators to pressed keys
-    uint16_t newKey = (octaveNum*12)+key;
-    for(int i = 0; i < POLYPHONY; i++) {
-        //If accumulator is free
-        if(accumulatorMap[i] == NULL) {
-            //Mark that key with the accumulator (fast lookup for deallocation)
-            __atomic_store_n(&pianoKeyMap[newKey], i, __ATOMIC_RELAXED);
-            //Write which key the previously free one is allocated to - stores octave information
-            __atomic_store_n(&accumulatorMap[i], octaveNum, __ATOMIC_RELAXED);
-            //Set the step size for the accumulator according to the key number
-            __atomic_store_n(&currentStepSize[i], stepSizes[key], __ATOMIC_RELAXED);
-            //If recording - store as successful keypress, no need for atomic access as this is only thread with access to keymemory, and alloc dealloc does not occur at the same time
-            if (ISRECORDING) {
-                 __atomic_store_n(&LASTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
-                if (CURRENTKEY+1 < MAXKEYS) {
-                    keyMemory[CURRENTKEY].eventType = 'P';
-                    keyMemory[CURRENTKEY].octave = octaveNum;
-                    keyMemory[CURRENTKEY].key = key;
-                    keyMemory[CURRENTKEY].time = REFTIMER-millis();
-                    //Increment current key
-                    __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
-                } else {
-                    //Disable reccording at record limit
-                    __atomic_store_n(&ISRECORDING, false, __ATOMIC_RELAXED);
-                }
-            }
-            break;
-        }
-    }
-}
-
-//Deallocate an accumulator from CAN Bus or itself
-void deallocAccumulator(uint8_t key, uint8_t octaveNum) {
-    uint8_t newKey = (octaveNum*12)+key;
-    //pianoKeyMap[newKey] gives the accumulator index mapped to newKey which ranges from 0-84
-    __atomic_store_n(&accumulatorMap[pianoKeyMap[newKey]], NULL, __ATOMIC_RELAXED);
-    __atomic_store_n(&currentStepSize[pianoKeyMap[newKey]], 0, __ATOMIC_RELAXED); 
-    if (ISRECORDING) {
-         __atomic_store_n(&LASTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
-        if (CURRENTKEY+1 < MAXKEYS) {
-            keyMemory[CURRENTKEY].eventType = 'R';
-            keyMemory[CURRENTKEY].octave = octaveNum;
-            keyMemory[CURRENTKEY].key = key;
-            keyMemory[CURRENTKEY].time = REFTIMER-millis();
-            //Increment current key
-            __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
-        } else {
-            //Disable recording at record limit
-            __atomic_store_n(&ISRECORDING, false, __ATOMIC_RELAXED);
-
-        }
-    }
-}
 
 //Update settings and change screens
 void updateButtons(uint8_t prevKeys[], uint8_t currKeys[]) {
@@ -113,7 +59,7 @@ void updateButtons(uint8_t prevKeys[], uint8_t currKeys[]) {
     int8_t K3 = rotationDirection(prevKeys[3]&0b11, currKeys[3]&0b11);
     if (SCREENNUM == 0) { //Main screen
         //Volume key is first knob
-        __atomic_store_n(&VOLUMEMOD, max(0, min(8, VOLUMEMOD+K0)), __ATOMIC_RELAXED);
+        __atomic_store_n(&VOLUMEMOD, max(0, min(64, VOLUMEMOD+(K0*8))), __ATOMIC_RELAXED);
         //Octave key is second knob
         __atomic_store_n(&OCTAVE,  max(0, min(6, OCTAVE+K1)), __ATOMIC_RELAXED);
         //Wave key is third knob
@@ -161,9 +107,9 @@ void updateButtons(uint8_t prevKeys[], uint8_t currKeys[]) {
         }
     } else if (SCREENNUM == 3) { //Playback screen
         //Return
-        if(K3 == -1 && !ISPLAYBACK) {
-            __atomic_store_n(&SCREENNUM, 0, __ATOMIC_RELAXED);
-            //__atomic_store_n(&ISPLAYBACK, false, __ATOMIC_RELAXED);
+        if(K3 == -1) {
+            __atomic_store_n(&SCREENNUM, 0, __ATOMIC_RELAXED); 
+            __atomic_store_n(&LASTKEY, CURRENTKEY, __ATOMIC_RELAXED);
         }
     }
 }
@@ -181,9 +127,58 @@ int8_t rotationDirection(uint8_t prevState, uint8_t currState) {
 
 //Read and joystick value and store for pitch bending
 void readJoystick() {
-    uint32_t joyXRead = max(1, int((1023-analogRead(JOYX_PIN))/8));
-    __atomic_store_n(&JOYSTICKX, joyXRead, __ATOMIC_RELAXED);
     //Pitch bend
-    uint32_t joyYRead = max(1, int((1087-analogRead(JOYY_PIN))/64)); //Offset of 64 to avoid scaling volume to 0
+    int32_t joyXRead = max(1, int((1087-analogRead(JOYX_PIN))/64)); //Offset of 64 to avoid scaling volume to 0
+    __atomic_store_n(&JOYSTICKX, joyXRead, __ATOMIC_RELAXED);
+    //Volume mod
+    int32_t joyYRead = (544-int(analogRead(JOYY_PIN)))/32; 
     __atomic_store_n(&JOYSTICKY, joyYRead, __ATOMIC_RELAXED);
+    Serial.println(joyYRead);
+}
+
+void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
+	//Disable registering keypresses during playback
+	if (ISPLAYBACK) {
+		return;
+	}
+	uint8_t prevKeyRow;
+	uint8_t currKeyRow;
+	uint8_t columnIndex = 0;
+	uint8_t keyNum = 0;
+	uint8_t TX_Message[8] = {0};
+	for (int i=0; i<3;i++){
+		prevKeyRow = prevKeys[i];
+		currKeyRow = currKeys[i];
+		columnIndex = 0;
+		keyNum = 0;
+		for (int columnIndex = 0; columnIndex < 4; columnIndex++) {
+			keyNum = (i*4)+columnIndex;
+			if (((prevKeyRow&1)^(currKeyRow&1))==1) {
+				//State change in keys
+				if ((prevKeyRow&1) == 0) { 
+					//key Released 	
+					TX_Message[0] = 'R';
+					//If master, dealloc accumulator directly 
+					if (ISMASTER) {
+						deallocAccumulator(keyNum, OCTAVE);
+					}
+				} else {			   
+					//key Pressed	
+					TX_Message[0] = 'P';
+					//If master, alloc accumulator directly
+					if (ISMASTER) {
+						allocAccumulator(keyNum, OCTAVE);
+					}
+				}
+				TX_Message[1] = OCTAVE;
+				TX_Message[2] = keyNum;
+				//If not master, send to master
+				if (!ISMASTER) {
+					xQueueSend(msgOutQ, TX_Message, portMAX_DELAY);
+				}
+			}
+			currKeyRow = currKeyRow >> 1;
+			prevKeyRow = prevKeyRow >> 1;
+		}
+	}
 }

@@ -22,7 +22,6 @@ void setup() {
   pinMode(OUTL_PIN, OUTPUT);
   pinMode(OUTR_PIN, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-
   pinMode(C0_PIN, INPUT);
   pinMode(C1_PIN, INPUT);
   pinMode(C2_PIN, INPUT);
@@ -42,7 +41,7 @@ void setup() {
   xTaskCreate(CANSend, "CANSend", 256, NULL, 4, NULL);
   //Initialise display
   TaskHandle_t displayUpdateTaskHandle = NULL;
-  xTaskCreate(displayUpdateTask, "displayUpdate", 128, NULL, 2,	&displayUpdateTaskHandle);
+  xTaskCreate(displayUpdateTask, "displayUpdate", 128, NULL, 1,	&displayUpdateTaskHandle);
   setOutMuxBit(DRST_BIT, LOW);  //Assert display logic reset
   delayMicroseconds(2);
   setOutMuxBit(DRST_BIT, HIGH);  //Release display logic reset
@@ -50,11 +49,11 @@ void setup() {
   setOutMuxBit(DEN_BIT, HIGH);  //Enable display power supply
   //Keyscanner
   TaskHandle_t scanKeysHandle = NULL;
-  xTaskCreate(scanKeysTask, "scanKeys", 512, NULL, 3,	&scanKeysHandle);
+  xTaskCreate(scanKeysTask, "scanKeys", 512, NULL, 2,	&scanKeysHandle);
   keyArrayMutex = xSemaphoreCreateMutex();
   //Playback
   TaskHandle_t playbackTaskHandle = NULL;
-  xTaskCreate(playbackTask, "playback", 256, NULL, 1,	&playbackTaskHandle);
+  xTaskCreate(playbackTask, "playback", 256, NULL, 5,	&playbackTaskHandle);
   //Hardware Timer for sound
   TIM_TypeDef *Instance = TIM1;
   HardwareTimer *sampleTimer = new HardwareTimer(Instance);
@@ -65,7 +64,6 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Hello World");
   //Initialise accumulator map
-  //Initialise map
   for(int i = 0; i < POLYPHONY; i++) {
       accumulatorMap[i] = NULL;
   }

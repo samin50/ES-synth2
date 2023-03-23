@@ -1,4 +1,5 @@
 #include "ourLibrary.h"
+//File handles all menus that are displayed
 
 //Task for display updating - period 100ms
 void displayUpdateTask(void * pvParameters) {
@@ -103,7 +104,7 @@ void printTime() {
 }
 
 void mainScreen() {
-    std::string vol_perc = std::to_string(100*VOLUMEMOD/8) + "%";
+    std::string vol_perc = std::to_string(100*VOLUMEMOD/64) + "%";
     std::string volumeStr = "Vol: " + vol_perc;
     std::string settingStr = "Set Host + Rec/Play";
     std::string octaveStr = "Oct: " + std::to_string(OCTAVE);
