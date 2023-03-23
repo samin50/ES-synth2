@@ -15,9 +15,9 @@ void sampleISR() {
         //Obtain octave information from accumulatorMap
         octaveOffset = 4-(accumulatorMap[i]/12);
         if (octaveOffset > 0) {
-            phaseAcc[i] += ((currentStepSize[i] >> octaveOffset)*JOYSTICKX)/8;
+            phaseAcc[i] += ((currentStepSize[i] >> octaveOffset)*JOYSTICKY)/8;
         } else {
-            phaseAcc[i] += ((currentStepSize[i] << -octaveOffset)*JOYSTICKX)/8;
+            phaseAcc[i] += ((currentStepSize[i] << -octaveOffset)*JOYSTICKY)/8;
         }
         uint8_t sineIndx = (phaseAcc[i] >> 24) % 256;
         switch (WAVETYPE) {
@@ -56,7 +56,7 @@ void sampleISR() {
         }
     }
     //Volume control here
-    analogWrite(OUTR_PIN, ((Vout + 128)*(VOLUMEMOD+JOYSTICKY))/64);
+    analogWrite(OUTR_PIN, ((Vout + 128)*(VOLUMEMOD+JOYSTICKX))/64);
 }
 
 //Allocate an accumulator to a key either the from CAN Bus or from itself

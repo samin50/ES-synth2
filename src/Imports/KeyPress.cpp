@@ -125,17 +125,6 @@ int8_t rotationDirection(uint8_t prevState, uint8_t currState) {
     return 0;
 }
 
-//Read and joystick value and store for pitch bending
-void readJoystick() {
-    //Pitch bend
-    int32_t joyXRead = max(1, int((1087-analogRead(JOYX_PIN))/64)); //Offset of 64 to avoid scaling volume to 0
-    __atomic_store_n(&JOYSTICKX, joyXRead, __ATOMIC_RELAXED);
-    //Volume mod
-    int32_t joyYRead = (544-int(analogRead(JOYY_PIN)))/32; 
-    __atomic_store_n(&JOYSTICKY, joyYRead, __ATOMIC_RELAXED);
-    Serial.println(joyYRead);
-}
-
 void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
 	//Disable registering keypresses during playback
 	if (ISPLAYBACK) {
@@ -181,4 +170,15 @@ void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
 			prevKeyRow = prevKeyRow >> 1;
 		}
 	}
+}
+
+//Read and joystick value and store for pitch bending
+void readJoystick() {
+    //Volume mod
+    int32_t joyXRead = (544-int(analogRead(JOYX_PIN)))/32; 
+    __atomic_store_n(&JOYSTICKX, joyXRead, __ATOMIC_RELAXED);
+    //Pitch bend
+    //Offset of 64 to avoid scaling volume to 0
+    int32_t joyYRead = max(1, int((1087-analogRead(JOYY_PIN))/64)); 
+    __atomic_store_n(&JOYSTICKY, joyYRead, __ATOMIC_RELAXED);
 }
