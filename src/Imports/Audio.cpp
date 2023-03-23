@@ -4,7 +4,7 @@
 void sampleISR() {
     static uint32_t phaseAcc[POLYPHONY];
     int32_t Vout = 0;
-    int8_t octaveOffset;
+    int16_t octaveOffset;
     float volumeMod = VOLUMEMOD/10;
     //If not master, do not play
     if (!ISMASTER) {
@@ -13,11 +13,18 @@ void sampleISR() {
     //Polyphonic keypresses
     for(int i = 0; i < POLYPHONY; i++) {
         //Obtain octave information from accumulatorMap
+        //octaveOffset = pow(2, 4-accumulatorMap[i]);
+        //phaseAcc[i] += ((currentStepSize[i]*JOYSTICKX)/1023.0)*octaveOffset;
         octaveOffset = 4-accumulatorMap[i];
+        // if (octaveOffset > 0) {
+        //     phaseAcc[i] += ((currentStepSize[i] >> octaveOffset)*JOYSTICKY)/1023;
+        // } else {
+        //     phaseAcc[i] += ((currentStepSize[i] << -octaveOffset)*JOYSTICKY)/1023;
+        //}
         if (octaveOffset > 0) {
-            phaseAcc[i] += (currentStepSize[i] >> octaveOffset);
+            phaseAcc[i] += ((currentStepSize[i] >> octaveOffset)*JOYSTICKY)/8;
         } else {
-            phaseAcc[i] += (currentStepSize[i] << -octaveOffset);
+            phaseAcc[i] += ((currentStepSize[i] << -octaveOffset)*JOYSTICKY)/8;
         }
         //If the wave is sawtooth - simple addition
         if(WAVETYPE == 0) {
@@ -30,8 +37,6 @@ void sampleISR() {
             }
         } else if(WAVETYPE == 2) { //Sine wave
             uint8_t sineIndx = (phaseAcc[i] >> 24) % 256;
-            //int32_t sineVal = sinLUT[sineIndx];
-
             Vout += (sinLUT[sineIndx]/2) / (POLYPHONY);
         } else if(WAVETYPE == 3) { //Triangular wave
             if ((phaseAcc[i] >> 24) < 128) {
@@ -42,5 +47,5 @@ void sampleISR() {
         }
     }
     //Volume control here
-    analogWrite(OUTR_PIN, (((Vout + 128)*VOLUMEMOD) >> 3));
+    analogWrite(OUTR_PIN, (Vout + 128)*VOLUMEMOD >> 3);
 }
