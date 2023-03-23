@@ -39,7 +39,7 @@ void setup() {
   msgInQ = xQueueCreate(36,8);
   msgOutQ = xQueueCreate(36,8);
   xTaskCreate(decodeTask, "Decode", 256, NULL, 3, NULL);
-  xTaskCreate(CANSend, "CANSend", 256, NULL, 4, NULL);
+  xTaskCreate(CANSend, "CANSend", 256, NULL, 2, NULL);
   //Initialise display
   TaskHandle_t displayUpdateTaskHandle = NULL;
   xTaskCreate(displayUpdateTask, "displayUpdate", 128, NULL, 1,	&displayUpdateTaskHandle);
