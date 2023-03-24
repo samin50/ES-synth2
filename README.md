@@ -44,9 +44,9 @@
 |---------------------------|------------------------|-------------------------------------|----------------------------------|-----------------|----------------------|
 | playbackTask              | 1                      | 49.979                              | 0.002                            | 0.003           | 0.003                |
 | displayUpdateTask         | 2                      | 82.568                              | 17.382                           | 17.382          | 17.382               |
-| scanKeysTask               | 5                      | 49.886                              | 0.095                            | 0.0574          | 0.0574               |
-| decodeTask               | 3                      | NA                             | 0.NA                            | N/A          | NA               |
-| CANSend               | 4                      | NA                             | 0.NA                            | NA          | NA               |
+| scanKeysTask              | 5                      | 49.886                              | 0.095                            | 0.0574          | 0.0574               |
+| decodeTask                | 3                      | 25.2                                | 0.025                            | N/A             | NA                   |
+| CANSend                   | 4                      | NA                                  | 0.NA                             | NA              | NA                   |
 | sampleISR Polyphony: 11   | Interrupt              | 0.0455                              | 0.049                            | 88.919          | 88.919               |
 | sampleISR Polyphony: 10   | Interrupt              | 0.0455                              | 0.046                            | 83.475          | 83.475               |
 | sampleISR Polyphony: 9    | Interrupt              | 0.0455                              | 0.043                            | 78.031          | 78.031               |
@@ -68,9 +68,13 @@
 
 ### Polyphony
 This allows multiple key output with upto 8 keys (cpu limitation) at the same time.
+### Pitch Bend
+
+### Volume Bend
 ### Multi-page menu
 An additional menu allowing access to the advanced features
 ### Host/Sender Control 
 Allows each keyboard to identify as a host or other (sender) through the advanced menu. The host's settings will apply to all non-host boards and sound will only play from the host's speakers.
 ### Recording and full playback of sequence
 Option to record a sequence of notes with a timer on display and full playback through the host's advanced menu options.
+
