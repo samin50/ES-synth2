@@ -51,12 +51,12 @@
 |----|----|----|----|----|
 | playbackTask      | 5 | 50  | 0.002  | 0.004   |
 | scanKeysTask      | 4 | 50  | 0.095  | 0.190   |
-| decodeTask        | 3 | NA  | 0.000     | NA     |
-| CANSend & CAN_TX_ISR | 2 | NA  | 0.008     | NA  |
+| decodeTask        | 3 | 25.2| 0.000  | 0.000   |
+| CANSend & CAN_TX_ISR | 2 | 60  | 0.008 | 0.013 |
 | displayUpdateTask | 1 | 100 | 17.753 | 17.753  |
 | sampleISR         | Interrupt | 0.0455  | 0.017 | 37.363 |
-| CAN_RX_ISR | Interrupt | NA  | 0.001     | NA  |
-| **Total**         |  |  | **17.876** | **55.310** |
+| CAN_RX_ISR | Interrupt | 0.7  | 0.001     | 0.14  |
+| **Total**         |  |  | **17.876** | **55.463** |
 --- 
 The above results were collected with POLYPHONY set to 8, and 32 executions were recorded before averaging them. As our system is to sensitive to the POLYPHONY constant, denoting the number of simultaneous key presses the system will process, a graph below is shown of how changing the POLYPHONY constant affects the total CPU usage by each task.  
 
@@ -90,7 +90,7 @@ Keeps track of key frequencies based on the octave offset from the middle octave
 *****
 ## Task Dependencies
 ---
-<img src="./images/dependencyDiagram.png" width="346"/>
+<img src="./images/dependencies.jpeg" width="799"/>
 
 
 ## Advanced Features
