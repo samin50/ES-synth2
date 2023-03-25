@@ -38,12 +38,15 @@ void scanKeysTask(void * pvParameters) {
             colsResult = ~readCols();
             currArray[i] = ~colsResult;
         }
+        //Copy the previous key array to detect changes in state
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(keyArray), std::end(keyArray), std::begin(prevArray));
         xSemaphoreGive(keyArrayMutex);
+        //Detect changes in key presses
         updateButtons(prevArray, currArray);
         stateChange(prevArray,currArray);
         readJoystick();
+        //Copy into key array the new state
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(currArray), std::end(currArray), std::begin(keyArray));
         xSemaphoreGive(keyArrayMutex);
@@ -125,6 +128,7 @@ int8_t rotationDirection(uint8_t prevState, uint8_t currState) {
     return 0;
 }
 
+//Allocates and deallocates accumulators based off of the change in keypresses
 void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
 	//Disable registering keypresses during playback
 	if (ISPLAYBACK) {
@@ -135,7 +139,7 @@ void stateChange(uint8_t prevKeys[], uint8_t currKeys[]){
 	uint8_t columnIndex = 0;
 	uint8_t keyNum = 0;
 	uint8_t TX_Message[8] = {0};
-	for (int i=0; i<3;i++){
+	for (int i = 0; i < 3; i++){
 		prevKeyRow = prevKeys[i];
 		currKeyRow = currKeys[i];
 		columnIndex = 0;
