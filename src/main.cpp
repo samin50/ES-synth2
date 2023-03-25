@@ -29,7 +29,12 @@ void setup() {
   pinMode(JOYX_PIN, INPUT);
   pinMode(JOYY_PIN, INPUT);
   //Initialise CAN
-  CAN_Init(false);
+  #ifdef TEST_MODE
+    CAN_Init(true);
+  #endif
+  #ifndef TEST_MODE
+    CAN_Init(false);
+  #endif
   setCANFilter(MASTER_ID,0x7ff);
   CAN_RegisterRX_ISR(CAN_RX_ISR);
   CAN_RegisterTX_ISR(CAN_TX_ISR);
@@ -54,7 +59,7 @@ void setup() {
   //Keyscanner
   TaskHandle_t scanKeysHandle = NULL;
   #ifndef TEST_MODE
-    xTaskCreate(scanKeysTask, "scanKeys", 512, NULL, 2,	&scanKeysHandle);
+    xTaskCreate(scanKeysTask, "scanKeys", 512, NULL, 4,	&scanKeysHandle);
   #endif
   keyArrayMutex = xSemaphoreCreateMutex();
   //Playback
@@ -110,7 +115,9 @@ void timingAnalysis() {
       if (j == 0) {
         decodeTask(NULL);
       } else if (j == 1) {
-        CANSend(NULL);
+        // CAN_RegisterTX_ISR(CAN_TX_ISR);
+        // CANSend(NULL);
+        CAN_RegisterRX_ISR(CAN_RX_ISR);
       } else if (j == 2) {
         displayUpdateTask(NULL);
       } else if (j == 3) {
@@ -146,19 +153,21 @@ void timingAnalysis() {
         Serial.println(": SampleISR time (us, %)");
       }
     #endif
-      if (j == 2) {
-        totalUsage += float(duration/1000);
-        Serial.println(float(duration/1000));
-      } else if (j == 3) {
-        totalUsage += float(duration/200);
-        Serial.println(float(duration/200));
-      } else if (j == 4) {
-        totalUsage += float(duration/200);
-        Serial.println(float(duration/200));
-      } else if (j == 5) {
-        totalUsage += float((duration*100)/45);
-        Serial.println(float((duration*100)/45));
-      }
+    #ifdef STAT_ONLY
+        if (j == 2) {
+          totalUsage += float(duration/1000);
+          Serial.println(float(duration/1000));
+        } else if (j == 3) {
+          totalUsage += float(duration/200);
+          Serial.println(float(duration/200));
+        } else if (j == 4) {
+          totalUsage += float(duration/200);
+          Serial.println(float(duration/200));
+        } else if (j == 5) {
+          totalUsage += float((duration*100)/45);
+          Serial.println(float((duration*100)/45));
+        }
+      #endif
     }
   Serial.print(POLYPHONY);
   Serial.print(", ");

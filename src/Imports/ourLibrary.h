@@ -12,7 +12,7 @@
 #include <iomanip>
 
 //Timing analysis
-//#define TEST_MODE
+#define TEST_MODE
 //#define STAT_ONLY
 #define TEST_ITERATIONS 32
 //Constants and Global variables

@@ -8,6 +8,10 @@ void CAN_RX_ISR (void) {
 	xQueueSendFromISR(msgInQ, RX_Message_ISR, NULL);
 }
 
+void CAN_TX_ISR(void) {
+	xSemaphoreGiveFromISR(CAN_TX_Semaphore, NULL);
+} 
+
 void CANSend(void *pvParameters) {
 	uint8_t msgOut[8];
 	while (1) {
@@ -26,10 +30,6 @@ void CANSend(void *pvParameters) {
             return;
         #endif
 	}
-}
-
-void CAN_TX_ISR(void) {
-	xSemaphoreGiveFromISR(CAN_TX_Semaphore, NULL);
 }
 
 void decodeTask(void *pvParamters) {
