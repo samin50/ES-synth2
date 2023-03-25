@@ -37,11 +37,15 @@ void setup() {
   CAN_TX_Semaphore = xSemaphoreCreateCounting(3,3);
   msgInQ = xQueueCreate(36,8);
   msgOutQ = xQueueCreate(36,8);
-  xTaskCreate(decodeTask, "Decode", 256, NULL, 3, NULL);
-  xTaskCreate(CANSend, "CANSend", 256, NULL, 2, NULL);
+  #ifndef TEST_MODE
+    xTaskCreate(decodeTask, "Decode", 256, NULL, 3, NULL);
+    xTaskCreate(CANSend, "CANSend", 256, NULL, 2, NULL);
+  #endif
   //Initialise display
   TaskHandle_t displayUpdateTaskHandle = NULL;
-  xTaskCreate(displayUpdateTask, "displayUpdate", 128, NULL, 1,	&displayUpdateTaskHandle);
+  #ifndef TEST_MODE
+    xTaskCreate(displayUpdateTask, "displayUpdate", 128, NULL, 1,	&displayUpdateTaskHandle);
+  #endif
   setOutMuxBit(DRST_BIT, LOW);  //Assert display logic reset
   delayMicroseconds(2);
   setOutMuxBit(DRST_BIT, HIGH);  //Release display logic reset
@@ -49,17 +53,23 @@ void setup() {
   setOutMuxBit(DEN_BIT, HIGH);  //Enable display power supply
   //Keyscanner
   TaskHandle_t scanKeysHandle = NULL;
-  xTaskCreate(scanKeysTask, "scanKeys", 512, NULL, 2,	&scanKeysHandle);
+  #ifndef TEST_MODE
+    xTaskCreate(scanKeysTask, "scanKeys", 512, NULL, 2,	&scanKeysHandle);
+  #endif
   keyArrayMutex = xSemaphoreCreateMutex();
   //Playback
   TaskHandle_t playbackTaskHandle = NULL;
-  xTaskCreate(playbackTask, "playback", 256, NULL, 5,	&playbackTaskHandle);
+  #ifndef TEST_MODE
+    //xTaskCreate(playbackTask, "playback", 256, NULL, 5,	&playbackTaskHandle);
+  #endif
   //Hardware Timer for sound
   TIM_TypeDef *Instance = TIM1;
   HardwareTimer *sampleTimer = new HardwareTimer(Instance);
-  sampleTimer->setOverflow(22000, HERTZ_FORMAT);
-  sampleTimer->attachInterrupt(sampleISR);
-  sampleTimer->resume();
+  #ifndef TEST_MODE
+    sampleTimer->setOverflow(22000, HERTZ_FORMAT);
+    sampleTimer->attachInterrupt(sampleISR);
+    sampleTimer->resume();
+  #endif
   //Initialise UART
   Serial.begin(9600);
   Serial.println("Hello World");
@@ -68,7 +78,55 @@ void setup() {
       accumulatorMap[i] = NULL;
   }
   //Start tasks
-  vTaskStartScheduler();
+  #ifndef TEST_MODE
+    vTaskStartScheduler();
+  #endif
+  //Timing analysis
+  #ifdef TEST_MODE
+    //Create worst case scenario
+    SCREENNUM = 2;
+    WAVETYPE = 3;
+    for(int i = 0; i < POLYPHONY; i++) {
+      accumulatorMap[i] = i;
+      if (i < 12) {
+        currentStepSize[i] = stepSizes[i];
+      }
+    }
+    for (int j = 0; j < 6; j++) {
+      uint32_t startTime = micros();
+      for (int i = 0; i < TEST_ITERATIONS; i++) {
+        if (j == 0) {
+          decodeTask(NULL);
+        } else if (j == 1) {
+          CANSend(NULL);
+        } else if (j == 2) {
+          displayUpdateTask(NULL);
+        } else if (j == 3) {
+          scanKeysTask(NULL);
+        } else if (j == 4) {
+          playbackTask(NULL);
+        } else if (j == 5) {
+          VOLUMEMOD = 5;
+          JOYSTICKX = 5;
+          sampleISR();
+        }
+      }
+      if (j == 0) {
+        Serial.print("Decode task time (us): ");
+      } else if (j == 1) {
+        Serial.print("CANSEND task time (us): ");
+      } else if (j == 2) {
+        Serial.print("displayUpdateTask task time (us): ");
+      } else if (j == 3) {
+        Serial.print("scanKeysTask task time (us): ");
+      } else if (j == 4) {
+        Serial.print("playbackTask task time (us): ");
+      } else if (j == 5) {
+        Serial.print("SampleISR time (us): ");
+      }
+      Serial.println((micros()-startTime)/TEST_ITERATIONS);
+    }
+  #endif
 }
 
 void loop() {

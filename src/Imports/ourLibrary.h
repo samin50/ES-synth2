@@ -11,9 +11,25 @@
 #include <sstream>
 #include <iomanip>
 
+//Timing analysis
+#define TEST_MODE
+#define TEST_ITERATIONS 32
 //Constants and Global variables
 //Settings
-inline volatile uint32_t dur, start1, end1; // for time analysis
+inline volatile int8_t WAVETYPE; //0 is sawtooth, 1 is pulse, 2 is sine, 3 is triangular
+inline const uint8_t POLYPHONY = 8; //How many simulataneous keys allowed
+inline const uint32_t INTERVAL = 100; //LED update interval
+//Display
+inline U8G2_SSD1305_128X32_NONAME_F_HW_I2C u8g2(U8G2_R0);
+inline std::string keyInfo;
+//Key scan variables
+inline uint8_t keyArray[7];
+inline SemaphoreHandle_t keyArrayMutex;
+//CAN variables
+inline QueueHandle_t msgInQ;
+inline QueueHandle_t msgOutQ;
+inline SemaphoreHandle_t CAN_TX_Semaphore;
+//Polyphony and audio settings
 inline volatile const int32_t sinLUT[256] = {
     0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 
 72, 78, 84, 89, 95, 101, 106, 112, 117, 123, 128, 
@@ -41,20 +57,6 @@ inline volatile const int32_t sinLUT[256] = {
 -163, -158, -153, -148, -143, -138, -133, -128, -123, 
 -117, -112, -106, -101, -95, -90, -84, -78, -72, -66, 
 -60, -54, -48, -42, -36, -30, -24, -18, -12, -6};
-inline volatile int8_t WAVETYPE; //0 is sawtooth, 1 is pulse, 2 is sine, 3 is triangular
-inline const uint8_t POLYPHONY = 8; //How many simulataneous keys allowed
-inline const uint32_t INTERVAL = 100; //LED update interval
-//Display
-inline U8G2_SSD1305_128X32_NONAME_F_HW_I2C u8g2(U8G2_R0);
-inline std::string keyInfo;
-//Key scan variables
-inline uint8_t keyArray[7];
-inline SemaphoreHandle_t keyArrayMutex;
-//CAN variables
-inline QueueHandle_t msgInQ;
-inline QueueHandle_t msgOutQ;
-inline SemaphoreHandle_t CAN_TX_Semaphore;
-//Polyphony and audio settings
 inline const uint32_t stepSizes [] = {50953930, 54077542, 57201155, 60715219, 64229283, 68133799, 72233540, 76528508, 81018701, 85899345, 90975216, 96246312};
 inline volatile uint32_t currentStepSize[POLYPHONY];
 inline volatile uint8_t accumulatorMap[POLYPHONY]; //Accumulator map - contains information mapping accumulators and key presses to allow polyphony
@@ -113,7 +115,6 @@ void stateChange(uint8_t prevKeys[], uint8_t currKeys[]);
 
 //Valia
 void printKey();
-std::string hexToBin(uint16_t hexVal);
 
 //Andreas
 void sampleISR();

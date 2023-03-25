@@ -4,10 +4,13 @@ void playbackTask(void * pvParameters) {
     const TickType_t xFrequency = 50/portTICK_PERIOD_MS; //Granuality in playback
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-        if (!ISPLAYBACK) {
-            continue;
-        }
+        //Time analysis
+        #ifndef TEST_MODE
+            vTaskDelayUntil(&xLastWakeTime, xFrequency);
+            if (!ISPLAYBACK) {
+                continue;
+            }
+        #endif
         //Disable playback if the next key is disabled
         if (CURRENTKEY+1 >= LASTKEY) {
             __atomic_store_n(&ISPLAYBACK, false, __ATOMIC_RELAXED);
@@ -16,7 +19,9 @@ void playbackTask(void * pvParameters) {
                 __atomic_store_n(&accumulatorMap[i], NULL, __ATOMIC_RELAXED);
                 __atomic_store_n(&currentStepSize[i], 0, __ATOMIC_RELAXED); 
             }
-            continue;
+            #ifndef TEST_MODE
+                continue;
+            #endif
         }
         //Currently playing keys
         //If the next key is due to play
@@ -29,5 +34,9 @@ void playbackTask(void * pvParameters) {
                 __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
             }  
         }
+        //Time analysis
+        #ifdef TEST_MODE
+            return;
+        #endif
     }
 }

@@ -7,7 +7,6 @@ void displayUpdateTask(void * pvParameters) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     u8g2.setFont(u8g2_font_5x7_tr); // choose a suitable font
     while(1) {
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
         u8g2.clearBuffer();         // clear the internal memory
         if (SCREENNUM == 0) {
             printKey();
@@ -24,32 +23,12 @@ void displayUpdateTask(void * pvParameters) {
             playScreen();
         }
         u8g2.sendBuffer();          // transfer internal memory to the display
+        //Time analysis
+        #ifdef TEST_MODE
+            return;
+        #endif
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
-}
-
-std::string hexToBin(uint16_t hexVal) {
-    std::stringstream binStream;
-    binStream << std::hex << std::setfill('0') << std::setw(8) << hexVal;
-    std::string hexStr = binStream.str();
-    std::string binStr;
-    for (char c : hexStr) {
-        unsigned int n = 0;
-        if (c >= '0' && c <= '9') {
-            n = c - '0';
-        } else if (c >= 'A' && c <= 'F') {
-            n = c - 'A' + 10;
-        } else if (c >= 'a' && c <= 'f') {
-            n = c - 'a' + 10;
-        }
-        for (int i = 3; i >= 0; i--) {
-            if ((n >> i) & 1) {
-                binStr += '1';
-            } else {
-                binStr += '0';
-            }
-        }
-    }
-    return binStr;
 }
 
 void printKey() {

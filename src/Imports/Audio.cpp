@@ -111,7 +111,6 @@ void deallocAccumulator(uint8_t key, uint8_t octaveNum) {
         } else {
             //Disable recording at record limit
             __atomic_store_n(&ISRECORDING, false, __ATOMIC_RELAXED);
-
         }
     }
 }

@@ -28,7 +28,6 @@ void scanKeysTask(void * pvParameters) {
     uint8_t columnIndex;
     //Main loop
     while(1) {
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
         //Key scanning
         for(int i = 0; i < 8; i++) {
             //Activate row to read
@@ -42,6 +41,12 @@ void scanKeysTask(void * pvParameters) {
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(keyArray), std::end(keyArray), std::begin(prevArray));
         xSemaphoreGive(keyArrayMutex);
+         #ifdef TEST_MODE
+            //Worst case scenario
+            for(int i = 0; i < 8; i++) {
+                prevArray[i] = u_int8_t(255);
+            }
+        #endif
         //Detect changes in key presses
         updateButtons(prevArray, currArray);
         stateChange(prevArray,currArray);
@@ -50,6 +55,11 @@ void scanKeysTask(void * pvParameters) {
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(currArray), std::end(currArray), std::begin(keyArray));
         xSemaphoreGive(keyArrayMutex);
+        //Timing analysis
+        #ifdef TEST_MODE
+            return;
+        #endif
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }
 

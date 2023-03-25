@@ -8,12 +8,23 @@ void CAN_RX_ISR (void) {
 	xQueueSendFromISR(msgInQ, RX_Message_ISR, NULL);
 }
 
-void CANSend(void * pvParameters) {
+void CANSend(void *pvParameters) {
 	uint8_t msgOut[8];
 	while (1) {
-		xQueueReceive(msgOutQ, msgOut, portMAX_DELAY);
+		//Code is blocking so must disable during timing analysis
+		#ifndef TEST_MODE
+			xQueueReceive(msgOutQ, msgOut, portMAX_DELAY);
+		#endif
 		xSemaphoreTake(CAN_TX_Semaphore, portMAX_DELAY);
-		CAN_TX(MASTER_ID, msgOut);
+		//Code is blocking so must disable during timing analysis
+		#ifndef TEST_MODE
+			CAN_TX(MASTER_ID, msgOut);
+		#endif
+		xSemaphoreGive(CAN_TX_Semaphore);
+		//Time analysis
+        #ifdef TEST_MODE
+            return;
+        #endif
 	}
 }
 
@@ -22,11 +33,12 @@ void CAN_TX_ISR(void) {
 }
 
 void decodeTask(void *pvParamters) {
-	const TickType_t xFrequency = 50/portTICK_PERIOD_MS;
-	TickType_t xLastWakeTime = xTaskGetTickCount();
 	uint8_t RX_Message[8];
 	while (1) {
-		xQueueReceive(msgInQ, RX_Message, portMAX_DELAY);
+		//Call is blocking, so must disable during time analysis
+		#ifndef TEST_MODE
+			xQueueReceive(msgInQ, RX_Message, portMAX_DELAY);
+		#endif
 		if (!ISMASTER) {
 			continue;
 		}
@@ -40,5 +52,9 @@ void decodeTask(void *pvParamters) {
 		} else {
 			deallocAccumulator(RX_Message[2], RX_Message[1]);
 		}
+		//Time analysis
+        #ifdef TEST_MODE
+            return;
+        #endif
   	}
 }
