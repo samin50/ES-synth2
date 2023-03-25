@@ -90,6 +90,8 @@ Keeps track of key frequencies based on the octave offset from the middle octave
 ---
 <img src="./images/dependencies.jpeg" width="799"/>
 
+Our aim was to make each thread as independent as possible and eliminate circular dependencies to prevent the possibility of deadlock. As seen above, the main dependency in our system is the ***CANSend*** task which is dependent on ***scanKeysTask***. If ***msgoutQ*** is empty, then ***CANSend*** will block until a message is added to the queue. The reverse is not true as our system keeps track of the state of the previous and current keys being pressed and CAN messages only update the current state.
+
 
 ## Advanced Features
 ---
