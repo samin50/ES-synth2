@@ -29,12 +29,7 @@ void setup() {
   pinMode(JOYX_PIN, INPUT);
   pinMode(JOYY_PIN, INPUT);
   //Initialise CAN
-  #ifdef TEST_MODE
-    CAN_Init(true);
-  #endif
-  #ifndef TEST_MODE
-    CAN_Init(false);
-  #endif
+  CAN_Init(false);
   setCANFilter(MASTER_ID,0x7ff);
   CAN_RegisterRX_ISR(CAN_RX_ISR);
   CAN_RegisterTX_ISR(CAN_TX_ISR);
