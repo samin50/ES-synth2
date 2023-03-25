@@ -60,7 +60,7 @@ void setup() {
   //Playback
   TaskHandle_t playbackTaskHandle = NULL;
   #ifndef TEST_MODE
-    //xTaskCreate(playbackTask, "playback", 256, NULL, 5,	&playbackTaskHandle);
+    xTaskCreate(playbackTask, "playback", 256, NULL, 5,	&playbackTaskHandle);
   #endif
   //Hardware Timer for sound
   TIM_TypeDef *Instance = TIM1;
@@ -85,7 +85,7 @@ void setup() {
   #ifdef TEST_MODE
     //Create worst case scenario
     SCREENNUM = 2;
-    WAVETYPE = 3;
+    WAVETYPE = 2;
     for(int i = 0; i < POLYPHONY; i++) {
       accumulatorMap[i] = i;
       if (i < 12) {
@@ -111,21 +111,22 @@ void setup() {
           sampleISR();
         }
       }
+      Serial.print((micros()-startTime)/TEST_ITERATIONS);
       if (j == 0) {
-        Serial.print("Decode task time (us): ");
+        Serial.println(": Decode task time (us)");
       } else if (j == 1) {
-        Serial.print("CANSEND task time (us): ");
+        Serial.println(": CANSEND task time (us)");
       } else if (j == 2) {
-        Serial.print("displayUpdateTask task time (us): ");
+        Serial.println(": displayUpdateTask task time (us)");
       } else if (j == 3) {
-        Serial.print("scanKeysTask task time (us): ");
+        Serial.println(": scanKeysTask task time (us)");
       } else if (j == 4) {
-        Serial.print("playbackTask task time (us): ");
+        Serial.println(": playbackTask task time (us)");
       } else if (j == 5) {
-        Serial.print("SampleISR time (us): ");
+        Serial.println(": SampleISR time (us)");
       }
-      Serial.println((micros()-startTime)/TEST_ITERATIONS);
     }
+    Serial.println("Done!");
   #endif
 }
 
