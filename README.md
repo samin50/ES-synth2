@@ -71,7 +71,24 @@
 ---
 All shared resources have been protected with the use of Mutexes, Semephores, Atomic operations and Message Queueing.
 
-***keymap***
+- ***keyArray*** : Used in ***scanKeys()*** to identify and store key presses in a matrix. The mutex handle ***keyArrayMutex*** ensures the array is only accessed atomically and Semaphores are used to control access to the array.
+
+- ***currentStepSize*** : Keeps track of the shift of frequencies based on the octave offset from the middle keyboard frequency. This is used during ***accumulatorMap*** allocation but also in the sound generation ISR - ***sampleISR*** Mutexes cannot be used in ISRs according to the FreeRTOS specification, so atomic stores are used to update its value.  
+
+
+- ***accumulatormap, pianoKeyMap*** : The accumulator is used to allocate and deallocate keys that are currently pressed upto a 8-key limit (arbitrary value set due to CPU usage). It's accessed in the ***scanKeysTask()*** and ***playbackTask()***. ***pianokeymap*** keeps track of all 84 keys and is used during allocation and deallocation of accumulator. Both use atomic stores.
+
+- **ISMASTER** : A boolean state that tracks state of host keyboard and sending keyboards. It's accessed in ***scanKeysTask(), decodeTask(), sampleISR()*** and ***playbackTask*** so atomic stores are used 
+
+- ***VOLUMEMOD, JOYSTICKX, JOYSTICKY*** : Used for pitch bend and volume shifting. All of these are accessed in the ***scanKeys()*** task and ***sampleISR*** so atomic stores are used.
+
+- ***ISRECORDING, ISPLAYBACK*** : These are boolean states to determine whether the recording feature and if playback is occurring. Both are accessed in ***scanKeys*** and then ***ISRECORDING*** during ***accumulatorMap*** allocation (tasks for ***accumulatorMap*** allocation mentioned above) and ***ISPLAYBACK*** in ***sampleISR*** so they both use atomic stores.
+
+- ***CURRENTKEY, LASTKEY*** :
+
+- ***CAN_TX_Semaphore*** : 
+
+*****
 ## Task Dependencies
 ---
 
