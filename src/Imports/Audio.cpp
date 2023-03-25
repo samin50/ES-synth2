@@ -5,13 +5,18 @@ void sampleISR() {
     static uint32_t phaseAcc[POLYPHONY];
     int32_t Vout = 0;
     int16_t octaveOffset;
-    float volumeMod = VOLUMEMOD/10;
     //If not master, do not play
     if (!ISMASTER) {
         return;
     }
     //Polyphonic keypresses
     for(int i = 0; i < POLYPHONY; i++) {
+        //Do not process if accumulator is not set
+        #ifndef TEST_MODE
+            if (accumulatorMap[i] == NULL) {
+                continue;
+            }
+        #endif
         //Obtain octave information from accumulatorMap
         octaveOffset = 4-(accumulatorMap[i]/12);
         if (octaveOffset > 0) {
@@ -19,7 +24,7 @@ void sampleISR() {
         } else {
             phaseAcc[i] += ((currentStepSize[i] << -octaveOffset)*JOYSTICKY)/8;
         }
-        uint8_t sineIndx = (phaseAcc[i] >> 24) % 256;
+        //Change sound profile
         switch (WAVETYPE) {
             case 0:
             {
@@ -40,7 +45,8 @@ void sampleISR() {
             case 2:
             {
             //Sine wave
-                Vout += (sinLUT[sineIndx]/2) / (POLYPHONY);
+                uint8_t sineIndx = (phaseAcc[i] >> 24) % 256;
+                Vout += sinLUT[sineIndx]/POLYPHONY;
                 break;
             }
             case 3: 
@@ -63,6 +69,11 @@ void sampleISR() {
 void allocAccumulator(uint8_t key, uint8_t octaveNum) {
     //Allocate freed accumulators to pressed keys
     uint16_t newKey = (octaveNum*12)+key;
+    //Do not allow multiple identical keys into the accumulator else a key release event will cause a stuck key
+    if (pianoKeyMap[newKey] != NULL) {
+        return;
+    }
+    //Check for free accumulators
     for(int i = 0; i < POLYPHONY; i++) {
         //If accumulator is free
         if(accumulatorMap[i] == NULL) {
@@ -83,7 +94,7 @@ void allocAccumulator(uint8_t key, uint8_t octaveNum) {
                     //Increment current key
                     __atomic_store_n(&CURRENTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
                 } else {
-                    //Disable reccording at record limit
+                    //Disable recording at record limit
                     __atomic_store_n(&ISRECORDING, false, __ATOMIC_RELAXED);
                 }
             }
@@ -99,6 +110,7 @@ void deallocAccumulator(uint8_t key, uint8_t octaveNum) {
     //pianoKeyMap[newKey] gives the accumulator index mapped to newKey which ranges from 0-84
     __atomic_store_n(&accumulatorMap[pianoKeyMap[newKey]], NULL, __ATOMIC_RELAXED);
     __atomic_store_n(&currentStepSize[pianoKeyMap[newKey]], 0, __ATOMIC_RELAXED); 
+    __atomic_store_n(&pianoKeyMap[newKey], NULL, __ATOMIC_RELAXED); 
     if (ISRECORDING) {
          __atomic_store_n(&LASTKEY, CURRENTKEY+1, __ATOMIC_RELAXED);
         if (CURRENTKEY+1 < MAXKEYS) {

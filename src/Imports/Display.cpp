@@ -32,15 +32,12 @@ void displayUpdateTask(void * pvParameters) {
 }
 
 void printKey() {
-     //Display button press
-    uint32_t res = 0;
-    uint8_t tempArray[8];
+    //Display button press
     std::string notesStr = "";
     std::string notes[12]= {"C", "C#","D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
     //Copy from Accumulator
-    std::copy(std::begin(accumulatorMap), std::end(accumulatorMap), std::begin(tempArray));
-    for (int i =0; i<8;i++){
-        if (accumulatorMap[i]!=0){
+    for (int i = 0; i < POLYPHONY; i++){
+        if (accumulatorMap[i] != NULL) {
             notesStr += notes[accumulatorMap[i]%12]; //Adds key to display string
             notesStr += std::to_string(accumulatorMap[i]/12); //Adds octave to display string
             notesStr += " ";

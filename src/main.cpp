@@ -63,71 +63,106 @@ void setup() {
     xTaskCreate(playbackTask, "playback", 256, NULL, 5,	&playbackTaskHandle);
   #endif
   //Hardware Timer for sound
-  TIM_TypeDef *Instance = TIM1;
-  HardwareTimer *sampleTimer = new HardwareTimer(Instance);
   #ifndef TEST_MODE
+    TIM_TypeDef *Instance = TIM1;
+    HardwareTimer *sampleTimer = new HardwareTimer(Instance);
     sampleTimer->setOverflow(22000, HERTZ_FORMAT);
     sampleTimer->attachInterrupt(sampleISR);
     sampleTimer->resume();
   #endif
   //Initialise UART
   Serial.begin(9600);
-  Serial.println("Hello World");
   //Initialise accumulator map
   for(int i = 0; i < POLYPHONY; i++) {
       accumulatorMap[i] = NULL;
+      currentStepSize[i] = 0;
+  }
+  for(int i = 0; i < 84; i++) {
+      pianoKeyMap[i] = NULL;
   }
   //Start tasks
   #ifndef TEST_MODE
     vTaskStartScheduler();
   #endif
-  //Timing analysis
   #ifdef TEST_MODE
-    //Create worst case scenario
-    SCREENNUM = 2;
-    WAVETYPE = 2;
-    for(int i = 0; i < POLYPHONY; i++) {
-      accumulatorMap[i] = i;
-      if (i < 12) {
-        currentStepSize[i] = stepSizes[i];
-      }
-    }
-    for (int j = 0; j < 6; j++) {
-      uint32_t startTime = micros();
-      for (int i = 0; i < TEST_ITERATIONS; i++) {
-        if (j == 0) {
-          decodeTask(NULL);
-        } else if (j == 1) {
-          CANSend(NULL);
-        } else if (j == 2) {
-          displayUpdateTask(NULL);
-        } else if (j == 3) {
-          scanKeysTask(NULL);
-        } else if (j == 4) {
-          playbackTask(NULL);
-        } else if (j == 5) {
-          VOLUMEMOD = 5;
-          JOYSTICKX = 5;
-          sampleISR();
-        }
-      }
-      Serial.print((micros()-startTime)/TEST_ITERATIONS);
-      if (j == 0) {
-        Serial.println(": Decode task time (us)");
-      } else if (j == 1) {
-        Serial.println(": CANSEND task time (us)");
-      } else if (j == 2) {
-        Serial.println(": displayUpdateTask task time (us)");
-      } else if (j == 3) {
-        Serial.println(": scanKeysTask task time (us)");
-      } else if (j == 4) {
-        Serial.println(": playbackTask task time (us)");
-      } else if (j == 5) {
-        Serial.println(": SampleISR time (us)");
-      }
-    }
-    Serial.println("Done!");
+    timingAnalysis();
   #endif
+}
+
+//Timing analysis function
+void timingAnalysis() {
+  //Timing analysis
+  SCREENNUM = 2;
+  WAVETYPE = 3;
+  //Create worst case scenario
+  for(int i = 0; i < POLYPHONY; i++) {
+    currentStepSize[i] = stepSizes[i%12];
+    accumulatorMap[i] = i;
+  }
+  float totalUsage = 0;
+  //All 5 tasks and interupts
+  for (int j = 0; j < 6; j++) {
+    VOLUMEMOD = 5;
+    JOYSTICKX = 5;
+    uint32_t duration = 0;
+    uint32_t startTime = micros();
+    for (int i = 0; i < TEST_ITERATIONS; i++) {
+      if (j == 0) {
+        decodeTask(NULL);
+      } else if (j == 1) {
+        CANSend(NULL);
+      } else if (j == 2) {
+        displayUpdateTask(NULL);
+      } else if (j == 3) {
+        scanKeysTask(NULL);
+      } else if (j == 4) {
+        playbackTask(NULL);
+      } else if (j == 5) {
+        sampleISR();
+      }
+    }
+    duration = (micros()-startTime)/TEST_ITERATIONS;
+    //Specific output for each task
+    #ifndef STAT_ONLY
+      Serial.print(duration);
+      Serial.print(", ");
+      if (j == 0) {
+        Serial.print("NA");
+        Serial.println(": Decode task time (us, %)");
+      } else if (j == 1) {
+        Serial.print("NA");
+        Serial.println(": CANSEND task time (us, %)");
+      } else if (j == 2) {
+        Serial.print(float(duration/1000));
+        Serial.println(": displayUpdateTask task time (us, %)");
+      } else if (j == 3) {
+        Serial.print(float(duration/200));
+        Serial.println(": scanKeysTask task time (us, %)");
+      } else if (j == 4) {
+        Serial.print(float(duration/200));
+        Serial.println(": playbackTask task time (us, %)");
+      } else if (j == 5) {
+        Serial.print(float((duration*100)/45));
+        Serial.println(": SampleISR time (us, %)");
+      }
+    #endif
+      if (j == 2) {
+        totalUsage += float(duration/1000);
+        Serial.println(float(duration/1000));
+      } else if (j == 3) {
+        totalUsage += float(duration/200);
+        Serial.println(float(duration/200));
+      } else if (j == 4) {
+        totalUsage += float(duration/200);
+        Serial.println(float(duration/200));
+      } else if (j == 5) {
+        totalUsage += float((duration*100)/45);
+        Serial.println(float((duration*100)/45));
+      }
+    }
+  Serial.print(POLYPHONY);
+  Serial.print(", ");
+  Serial.println(totalUsage);
 }
 
 void loop() {

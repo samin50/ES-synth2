@@ -42,10 +42,6 @@ void decodeTask(void *pvParamters) {
 		if (!ISMASTER) {
 			continue;
 		}
-		//If the same octave, reject packet to prevent freezing
-		if (RX_Message[1] == OCTAVE) {
-			continue;
-		}
 		// Process the received message
 		if (RX_Message[0] == 'P') {
 			allocAccumulator(RX_Message[2], RX_Message[1]);

@@ -12,7 +12,8 @@
 #include <iomanip>
 
 //Timing analysis
-#define TEST_MODE
+//#define TEST_MODE
+//#define STAT_ONLY
 #define TEST_ITERATIONS 32
 //Constants and Global variables
 //Settings
@@ -31,37 +32,28 @@ inline QueueHandle_t msgOutQ;
 inline SemaphoreHandle_t CAN_TX_Semaphore;
 //Polyphony and audio settings
 inline volatile const int32_t sinLUT[256] = {
-    0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 
-72, 78, 84, 89, 95, 101, 106, 112, 117, 123, 128, 
-133, 138, 143, 148, 153, 158, 163, 167, 172, 176, 
-181, 185, 189, 193, 197, 200, 204, 207, 211, 214, 
-217, 220, 223, 225, 228, 230, 233, 235, 237, 239, 
-240, 242, 243, 245, 246, 247, 248, 248, 249, 249, 
-249, 249, 249, 249, 249, 248, 248, 247, 246, 245, 
-243, 242, 240, 239, 237, 235, 233, 230, 228, 226, 
-223, 220, 217, 214, 211, 207, 204, 200, 197, 193, 
-189, 185, 181, 176, 172, 167, 163, 158, 153, 148, 
-143, 138, 133, 128, 123, 117, 112, 106, 101, 95, 
-89, 84, 78, 72, 66, 60, 54, 48, 42, 36, 30, 24, 
-18, 12, 6, 0, -6, -12, -18, -24, -30, -36, -42, 
--48, -54, -60, -66, -72, -78, -84, -89, -95, -101, 
--106, -112, -117, -123, -128, -133, -138, -143, -148, 
--153, -158, -163, -167, -172, -176, -181, -185, -189, 
--193, -197, -200, -204, -207, -211, -214, -217, -220, 
--223, -225, -228, -230, -233, -235, -237, -239, -240, 
--242, -243, -245, -246, -247, -248, -248, -249, -249, 
--249, -249, -249, -249, -249, -248, -248, -247, -246, 
--245, -243, -242, -240, -239, -237, -235, -233, -230, 
--228, -226, -223, -220, -217, -214, -211, -207, -204, 
--200, -197, -193, -189, -185, -181, -176, -172, -167, 
--163, -158, -153, -148, -143, -138, -133, -128, -123, 
--117, -112, -106, -101, -95, -90, -84, -78, -72, -66, 
--60, -54, -48, -42, -36, -30, -24, -18, -12, -6};
-inline const uint32_t stepSizes [] = {50953930, 54077542, 57201155, 60715219, 64229283, 68133799, 72233540, 76528508, 81018701, 85899345, 90975216, 96246312};
+0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 
+36, 39, 42, 44, 47, 50, 53, 56, 58, 61, 64, 
+66, 69, 71, 74, 76, 79, 81, 84, 86, 88, 90, 
+92, 94, 96, 98, 100, 102, 103, 105, 107, 109, 110, 
+111, 112, 114, 115, 116, 117, 118, 119, 119, 120, 120, 
+120, 120, 120, 120, 120, 119, 119, 118, 117, 116, 115, 
+114, 112, 111, 109, 107, 105, 103, 100, 98, 96, 94, 
+91, 88, 86, 83, 80, 76, 73, 69, 65, 61, 57, 
+53, 49, 44, 40, 35, 31, 26, 21, 17, 12, 7, 3, 
+-3, -7, -12, -17, -21, -26, -31, -35, -40, -44, -49, 
+-53, -57, -61, -65, -69, -73, -76, -80, -83, -86, -88, 
+-91, -94, -96, -98, -100, -102, -103, -105, -107, -109, -110, 
+-111, -112, -114, -115, -116, -117, -118, -119, -119, -120, -120, 
+-120, -120, -120, -120, -120, -119, -119, -118, -117, -116, -115, 
+-114, -112, -111, -109, -107, -105, -103, -100, -98, -96, -94, 
+-91, -88, -86, -83, -80, -76, -73, -69, -65, -61, -57, -53, 
+-49, -44, -40, -35, -31, -26, -21, -17, -12, -7, -3};
+
+inline const uint32_t stepSizes[12] = {50953930, 54077542, 57201155, 60715219, 64229283, 68133799, 72233540, 76528508, 81018701, 85899345, 90975216, 96246312};
 inline volatile uint32_t currentStepSize[POLYPHONY];
 inline volatile uint8_t accumulatorMap[POLYPHONY]; //Accumulator map - contains information mapping accumulators and key presses to allow polyphony
 inline volatile uint8_t pianoKeyMap[84]; //Keeps track of which key is allocated to what accumulator - 7 octaves support so 84 keys total
-inline SemaphoreHandle_t accumulatorMapMutex;
 //Buttons
 inline volatile int8_t VOLUMEMOD = 64;
 inline volatile int8_t OCTAVE = 5; //Octave number
@@ -80,14 +72,13 @@ struct keyRecord {
 inline volatile uint8_t SCREENNUM = 0; 
 inline volatile bool ISRECORDING = false;
 inline volatile bool ISPLAYBACK = false;
-inline volatile uint32_t REFTIMER;
+inline volatile uint32_t REFTIMER = 0;
 inline const uint16_t MAXKEYS = 512;
 inline volatile keyRecord keyMemory[MAXKEYS];
 inline volatile uint16_t CURRENTKEY = 0;
 inline volatile uint16_t LASTKEY = 0;
 
 //Shaheen
-
 uint8_t readCols();
 void setRow(uint8_t rowIdx);
 void allocAccumulator(uint8_t key, uint8_t octaveNum);
@@ -103,6 +94,7 @@ void settingsScreen();
 void recordScreen();
 void playScreen();
 void readJoystick();
+void timingAnalysis();
 
 //Shaanuka
 void CAN_RX_ISR();
