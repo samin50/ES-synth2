@@ -41,7 +41,7 @@ void scanKeysTask(void * pvParameters) {
         xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
         std::copy(std::begin(keyArray), std::end(keyArray), std::begin(prevArray));
         xSemaphoreGive(keyArrayMutex);
-         #ifdef TEST_MODE
+        #ifdef TEST_MODE
             //Worst case scenario
             for(int i = 0; i < 8; i++) {
                 prevArray[i] = u_int8_t(255);
