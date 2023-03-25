@@ -89,6 +89,7 @@ All shared resources have been protected with the use of Mutexes, Semephores, At
 *****
 ## Task Dependencies
 ---
+<img src="./images/dependencyDiagram.png" width="346"/>
 
 
 ## Advanced Features
