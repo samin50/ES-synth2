@@ -85,3 +85,8 @@ An additional menu allowing access to the advanced features
 Allows each keyboard to identify as a host or other (sender) through the advanced menu. The host's settings will apply to all non-host boards and sound will only play from the host's speakers.
 ### **Recording and full playback of sequence**
 Option to record a sequence of notes with a timer on display and full playback through the host's advanced menu options.
+
+## Demo of Advanced Features
+
+https://user-images.githubusercontent.com/55187271/227695921-bdfcc190-a1b3-4bcd-b522-2e35d8b39978.mp4
+
