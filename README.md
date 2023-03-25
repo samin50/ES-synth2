@@ -14,11 +14,8 @@
 
 # Report - (Deadline Extended Until Saturday 25/03 11:59pm)
 ### **Demo of Advanced Features**
-
+This includes polyphony, recording/playback, pitch bend, octave selection, dynamic Host configuration and the demonstration of multiple sound profiles.
 #### https://user-images.githubusercontent.com/55187271/227695921-bdfcc190-a1b3-4bcd-b522-2e35d8b39978.mp4
-
-
-
 ---
 ### **Tasks**
 - ***scanKeysTask*** : This task executes every 50ms and is responsible for processing key presses by the user, including the joystick used for pitch bending and volume modding. It reads the new state of the keys and combines this with the previous state to detect when a key was pressed or released. As our system supports polyphony, we require the dynamic allocation of multiple phase accumulators which is handled by this task.
@@ -61,8 +58,9 @@
 The above results were collected with POLYPHONY set to 8, and 32 executions were recorded before averaging them. As our system is to sensitive to the POLYPHONY constant, denoting the number of simultaneous key presses the system will process, a graph below is shown of how changing the POLYPHONY constant affects the total CPU usage by each task.  
 
 ---
-<img src="./images/timing.png"/>
-From the graph, it is clear that the system can support up to 38 Polyphony in worst-case conditions before becoming unstable. Our system is set to 8 key polyphony by default.
+<img src="./images/timing.png" width="580"/>  
+
+From the graph, it is clear that the system can support up to 38-key polyphony in worst-case conditions before becoming unstable. Our system is set to 8 key polyphony by default.
 
 ---
 ## Shared Resources
@@ -97,17 +95,20 @@ Keeps track of key frequencies based on the octave offset from the middle octave
 ---
 
 ### **Polyphony**
-This allows multiple key output with upto 8 keys (cpu limitation) at the same time.
+Our system supports the simulataneous processing of multiple key presses.
 ### **Multi-Page Menu**
-An additional menu allowing access to the advanced features
-### **Host/Sender Control**
-Allows each keyboard to identify as a host or other (sender) through the advanced menu. The host's settings will apply to all non-host boards and sound will only play from the host's speakers.
+The user is able to navigate to different displays depending on what features they would like to acccess.
+### **Host/Sender Configuration**
+Allows each keyboard to identify as a Host or Agent through the advanced menu. Sound will only play through the Host.
 ### **Recording and Full Playback of Sequence**
-Option to record a sequence of notes with a timer on display and full playback through the host's advanced menu options.
+Our system supports the ability to record a finite sequence of key presses (which can be configured using the MAXKEYS constant) featuring a timer on display and playback through the Host, and supports polyphony.
 
+### **Pitch-bend and Volume Mod**
+Using he joystick, the user can greatly change the sound being produced; moving the joystick in the Y direction results in a pitch-bend, increase or decreasing the frequency of the sound, and moving the joystick in the X direction results in fine volume control.
 ### **Sound Profiles**
-A picoscope was then used to measure the output of the DAC and verify the generated signals. The waves are shown below:
+Our system supports 4 sound profiles (Sawtooth, Square, Sine and Triangle). The corresponding waveforms from the DAC were captured using a picoscope was used to measure the output of the DAC and are shown below.
 <p align="center">
-<img src="./images/pulse.png" width="354"/> <img src="./images/sawtooth.png" width="354"/> <img src="./images/sine.png" width="354"/> <img src="./images/triangle.png" width="354"/>
+<img src="./images/sawtooth.png" width="354"/> 
+<img src="./images/pulse.png" width="354"/><img src="./images/sine.png" width="354"/> <img src="./images/triangle.png" width="354"/>
 </p>
 
